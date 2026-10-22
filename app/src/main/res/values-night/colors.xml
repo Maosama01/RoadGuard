@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="concrete">#15181D</color>
+    <color name="surface">#1F242B</color>
+    <color name="surface_2">#262C34</color>
+    <color name="ink">#E8EAE6</color>
+    <color name="muted">#9AA1AA</color>
+    <color name="line">#333A44</color>
+    <color name="brand_primary">#F2C230</color>
+    <color name="on_brand_primary">#1C2026</color>
+</resources>

@@ -1,0 +1,39 @@
+# RoadGuard on one server with automatic HTTPS.
+#   1. Point your domain's DNS A record at this server.
+#   2. Create .env next to this file (see DEPLOY.md).
+#   3. docker compose up -d --build
+services:
+  api:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: "5000"
+      DATA_DIR: /data
+      PUBLIC_BASE_URL: https://${DOMAIN:?Set DOMAIN in .env, e.g. roadguard.example.in}
+    volumes:
+      - roadguard-data:/data
+    expose:
+      - "5000"
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  roadguard-data:
+  caddy-data:
+  caddy-config:

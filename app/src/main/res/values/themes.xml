@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <style name="Theme.RoadGuard" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/brand_primary</item>
+        <item name="colorOnPrimary">@color/on_brand_primary</item>
+        <item name="colorPrimaryContainer">@color/surface_2</item>
+        <item name="colorOnPrimaryContainer">@color/ink</item>
+        <item name="colorSecondary">@color/lane</item>
+        <item name="colorOnSecondary">@color/lane_ink</item>
+        <item name="colorSecondaryContainer">@color/surface_2</item>
+        <item name="colorOnSecondaryContainer">@color/ink</item>
+        <item name="colorTertiary">@color/sev_low</item>
+        <item name="colorError">@color/sev_critical</item>
+        <item name="android:colorBackground">@color/concrete</item>
+        <item name="colorOnBackground">@color/ink</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/ink</item>
+        <item name="colorOnSurfaceVariant">@color/muted</item>
+        <item name="colorSurfaceVariant">@color/surface_2</item>
+        <item name="colorSurfaceContainerLowest">@color/surface</item>
+        <item name="colorSurfaceContainerLow">@color/surface</item>
+        <item name="colorSurfaceContainer">@color/surface</item>
+        <item name="colorSurfaceContainerHigh">@color/surface_2</item>
+        <item name="colorSurfaceContainerHighest">@color/surface_2</item>
+        <item name="colorOutline">@color/line</item>
+        <item name="colorOutlineVariant">@color/line</item>
+
+        <item name="android:fontFamily">@font/barlow</item>
+        <item name="fontFamily">@font/barlow</item>
+        <item name="textAppearanceDisplaySmall">@style/TextAppearance.RoadGuard.DisplaySmall</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.RoadGuard.HeadlineMedium</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.RoadGuard.HeadlineSmall</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.RoadGuard.TitleLarge</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.RoadGuard.TitleMedium</item>
+        <item name="textAppearanceTitleSmall">@style/TextAppearance.RoadGuard.TitleSmall</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.RoadGuard.BodyLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.RoadGuard.BodyMedium</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.RoadGuard.BodySmall</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.RoadGuard.LabelLarge</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.RoadGuard.LabelMedium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.RoadGuard.LabelSmall</item>
+
+        <item name="materialCardViewStyle">@style/Widget.RoadGuard.Card</item>
+        <item name="android:statusBarColor">@color/concrete</item>
+        <item name="android:navigationBarColor">@color/surface</item>
+        <item name="android:windowLightStatusBar">@bool/light_bars</item>
+    </style>
+
+    <!-- Drive mode is always dark: it sits on a dashboard, often at night. -->
+    <style name="Theme.RoadGuard.Drive" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/lane</item>
+        <item name="colorOnPrimary">@color/lane_ink</item>
+        <item name="colorSecondary">@color/lane</item>
+        <item name="colorSurface">@color/asphalt</item>
+        <item name="colorOnSurface">@color/on_asphalt</item>
+        <item name="android:colorBackground">#000000</item>
+        <item name="android:fontFamily">@font/barlow</item>
+        <item name="fontFamily">@font/barlow</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.RoadGuard.LabelLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.RoadGuard.BodyMedium</item>
+        <item name="android:statusBarColor">#000000</item>
+        <item name="android:navigationBarColor">#000000</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+    <style name="Theme.RoadGuard.Splash" parent="Theme.RoadGuard">
+        <item name="android:windowBackground">@drawable/splash_background</item>
+        <item name="android:statusBarColor">@color/asphalt</item>
+        <item name="android:navigationBarColor">@color/asphalt</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+
+    <!-- ===== Type ===== -->
+    <style name="TextAppearance.RoadGuard.DisplaySmall" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="android:fontFamily">@font/barlow_condensed</item>
+        <item name="fontFamily">@font/barlow_condensed</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+    <style name="TextAppearance.RoadGuard.HeadlineMedium" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:fontFamily">@font/barlow_semibold</item>
+        <item name="fontFamily">@font/barlow_semibold</item>
+    </style>
+    <style name="TextAppearance.RoadGuard.HeadlineSmall" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:fontFamily">@font/barlow_semibold</item>
+        <item name="fontFamily">@font/barlow_semibold</item>
+    </style>
+    <style name="TextAppearance.RoadGuard.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:fontFamily">@font/barlow_semibold</item>
+        <item name="fontFamily">@font/barlow_semibold</item>
+    </style>
+    <style name="TextAppearance.RoadGuard.TitleMedium" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:fontFamily">@font/barlow_semibold</item>
+        <item name="fontFamily">@font/barlow_semibold</item>
+        <item name="android:textSize">17sp</item>
+    </style>
+    <style name="TextAppearance.RoadGuard.TitleSmall" parent="TextAppearance.Material3.TitleSmall">
+        <item name="android:fontFamily">@font/barlow_semibold</item>
+        <item name="fontFamily">@font/barlow_semibold</item>
+    </style>
+    <style name="TextAppearance.RoadGuard.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:fontFamily">@font/barlow_regular</item>
+        <item name="fontFamily">@font/barlow_regular</item>
+        <item name="android:textSize">17sp</item>
+    </style>
+    <style name="TextAppearance.RoadGuard.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:fontFamily">@font/barlow_regular</item>
+        <item name="fontFamily">@font/barlow_regular</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+    <style name="TextAppearance.RoadGuard.BodySmall" parent="TextAppearance.Material3.BodySmall">
+        <item name="android:fontFamily">@font/barlow_regular</item>
+        <item name="fontFamily">@font/barlow_regular</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+    <style name="TextAppearance.RoadGuard.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:fontFamily">@font/barlow_semibold</item>
+        <item name="fontFamily">@font/barlow_semibold</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
+    <style name="TextAppearance.RoadGuard.LabelMedium" parent="TextAppearance.Material3.LabelMedium">
+        <item name="android:fontFamily">@font/barlow_medium</item>
+        <item name="fontFamily">@font/barlow_medium</item>
+    </style>
+    <style name="TextAppearance.RoadGuard.LabelSmall" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:fontFamily">@font/barlow_medium</item>
+        <item name="fontFamily">@font/barlow_medium</item>
+    </style>
+
+    <!-- Big numbers: condensed, like a road sign's distance figure. -->
+    <style name="TextAppearance.RoadGuard.Number" parent="TextAppearance.Material3.DisplaySmall">
+        <item name="android:fontFamily">@font/barlow_condensed_bold</item>
+        <item name="fontFamily">@font/barlow_condensed_bold</item>
+        <item name="android:textSize">34sp</item>
+        <item name="android:textColor">@color/ink</item>
+        <item name="android:includeFontPadding">false</item>
+    </style>
+    <style name="TextAppearance.RoadGuard.NumberSmall" parent="TextAppearance.RoadGuard.Number">
+        <item name="android:textSize">26sp</item>
+    </style>
+    <style name="TextAppearance.RoadGuard.Caption" parent="TextAppearance.RoadGuard.BodySmall">
+        <item name="android:textColor">@color/muted</item>
+    </style>
+    <style name="TextAppearance.RoadGuard.Section" parent="TextAppearance.RoadGuard.TitleMedium">
+        <item name="android:textColor">@color/ink</item>
+    </style>
+
+    <!-- ===== Widgets ===== -->
+    <style name="Widget.RoadGuard.Card" parent="Widget.Material3.CardView.Filled">
+        <item name="cardBackgroundColor">@color/surface</item>
+        <item name="cardCornerRadius">@dimen/radius_m</item>
+        <item name="cardElevation">0dp</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
+    <!-- The one loud button in the app: start a drive. Lane-marking yellow. -->
+    <style name="Widget.RoadGuard.Button.Lane" parent="Widget.Material3.Button">
+        <item name="backgroundTint">@color/lane</item>
+        <item name="android:textColor">@color/lane_ink</item>
+        <item name="iconTint">@color/lane_ink</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="cornerRadius">@dimen/radius_s</item>
+        <item name="android:textAppearance">@style/TextAppearance.RoadGuard.LabelLarge</item>
+    </style>
+    <style name="Widget.RoadGuard.Button" parent="Widget.Material3.Button">
+        <item name="android:minHeight">52dp</item>
+        <item name="cornerRadius">@dimen/radius_s</item>
+        <item name="android:textAppearance">@style/TextAppearance.RoadGuard.LabelLarge</item>
+    </style>
+    <style name="Widget.RoadGuard.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:minHeight">52dp</item>
+        <item name="cornerRadius">@dimen/radius_s</item>
+        <item name="strokeColor">@color/line</item>
+        <item name="android:textColor">@color/ink</item>
+        <item name="android:textAppearance">@style/TextAppearance.RoadGuard.LabelLarge</item>
+    </style>
+    <style name="Widget.RoadGuard.Button.Text" parent="Widget.Material3.Button.TextButton">
+        <item name="android:textColor">@color/ink</item>
+        <item name="android:textAppearance">@style/TextAppearance.RoadGuard.LabelLarge</item>
+    </style>
+
+    <style name="Widget.RoadGuard.NavIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/lane</item>
+    </style>
+
+    <style name="Widget.RoadGuard.Chip" parent="">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/bg_chip</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">10dp</item>
+        <item name="android:paddingTop">3dp</item>
+        <item name="android:paddingBottom">3dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:fontFamily">@font/barlow_semibold</item>
+        <item name="android:textColor">@color/ink</item>
+    </style>
+</resources>

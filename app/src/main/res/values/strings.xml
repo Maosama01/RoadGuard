@@ -1,0 +1,456 @@
+<resources>
+    <string name="app_name">RoadGuard</string>
+
+    <!-- Common -->
+    <string name="no_value" translatable="false">–</string>
+    <string name="action_back">Back</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_ok">OK</string>
+    <string name="action_try_again">Try again</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_sign_out">Sign out</string>
+    <string name="action_create_account">Create account</string>
+    <string name="action_change_server">Change server</string>
+    <string name="action_start_drive">Start drive</string>
+    <string name="level_default" translatable="false">Scout</string>
+    <!-- Language the spoken warnings use; must match the folder (values = en, values-hi = hi). Not shown. -->
+    <string name="speech_language_tag">en</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_map">Map</string>
+    <string name="nav_drive">Drive</string>
+    <string name="nav_reports">Reports</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Hazard kinds -->
+    <string name="kind_pothole">Pothole</string>
+    <string name="kind_drain_hole">Open drain</string>
+    <string name="kind_sewer_cover">Sewer cover</string>
+    <string name="kind_crack">Cracked surface</string>
+    <string name="kind_bump">Rough patch</string>
+    <string name="kind_other">Road hazard</string>
+
+    <!-- Severity levels -->
+    <string name="severity_low">Low</string>
+    <string name="severity_medium">Medium</string>
+    <string name="severity_high">High</string>
+    <string name="severity_critical">Critical</string>
+
+    <!-- Hazard status -->
+    <string name="status_reported">Reported</string>
+    <string name="status_verified">Verified</string>
+    <string name="status_assigned">Crew assigned</string>
+    <string name="status_in_progress">Being fixed</string>
+    <string name="status_resolved">Fixed</string>
+    <string name="status_rejected">Closed by the city</string>
+
+    <!-- Shared formatting: "Pothole, high severity" (kind, lowercase severity) -->
+    <string name="hazard_summary">%1$s, %2$s severity</string>
+    <!-- Hazard row: summary, then "2 drivers" -->
+    <string name="hazard_summary_with_drivers">%1$s, %2$s</string>
+    <string name="road_unnamed">Unnamed road</string>
+    <string name="time_just_now">just now</string>
+    <string name="distance_m">%d m</string>
+    <string name="distance_km">%.1f km</string>
+    <plurals name="drivers">
+        <item quantity="one">%d driver</item>
+        <item quantity="other">%d drivers</item>
+    </plurals>
+    <string name="greeting_morning">Good morning</string>
+    <string name="greeting_afternoon">Good afternoon</string>
+    <string name="greeting_evening">Good evening</string>
+    <string name="unit_km_h">km/h</string>
+    <string name="percent">%1$d%%</string>
+
+    <!-- Home -->
+    <string name="home_drive_title">Turn your drive into a road survey</string>
+    <string name="home_drive_body">Mount your phone facing the road. RoadGuard spots potholes and reports them for you.</string>
+    <string name="home_error_title">Can\'t connect right now</string>
+    <string name="home_error_body">You can still drive. Reports are saved on your phone and sent later.</string>
+    <string name="home_near_you">Near you</string>
+    <string name="home_open_map">Open map</string>
+    <string name="home_near_label_default">open hazards within 2 km</string>
+    <plurals name="home_near_label">
+        <item quantity="one">open hazard within 2 km</item>
+        <item quantity="other">open hazards within 2 km</item>
+    </plurals>
+    <string name="home_finding_location">Finding your location…</string>
+    <string name="home_allow_location">Allow location</string>
+    <string name="home_your_impact">Your impact</string>
+    <string name="home_guest_hint">You\'re driving as a guest. Create an account so your points follow you to any phone.</string>
+    <string name="home_across_city">Across the city</string>
+    <string name="home_stat_reports">reports sent</string>
+    <string name="home_stat_fixed">fixed after you reported</string>
+    <string name="home_stat_points">points</string>
+    <string name="home_stat_city_open">open hazards</string>
+    <string name="home_stat_city_fixed">of hazards fixed</string>
+    <string name="home_stat_city_today">sightings today</string>
+    <plurals name="home_pending">
+        <item quantity="one">%d report is waiting to send. It goes out automatically when you\'re online.</item>
+        <item quantity="other">%d reports are waiting to send. They go out automatically when you\'re online.</item>
+    </plurals>
+    <string name="home_near_need_location">Turn on location to see hazards around you.</string>
+    <string name="home_near_waiting_fix">Finding your location…</string>
+    <string name="home_near_error">Couldn\'t load nearby hazards.</string>
+    <string name="home_near_none">Nothing reported around you. Drive to keep it that way.</string>
+    <!-- Road, lowercase severity, distance -->
+    <string name="home_near_worst">Worst: %1$s, %2$s, %3$s away</string>
+
+    <!-- Pocket mode: Home card -->
+    <string name="pocket_title">Pocket mode</string>
+    <string name="pocket_body">Keep the phone in your pocket or a holder. RoadGuard feels potholes and warns you about known ones.</string>
+    <string name="pocket_running_body">Running with the screen off. Stop it here or from the notification.</string>
+    <string name="pocket_on">On</string>
+    <string name="pocket_start">Start pocket mode</string>
+    <string name="pocket_stop_long">Stop pocket mode</string>
+    <string name="pocket_stat_km">km scanned</string>
+    <string name="pocket_stat_jolts">jolts felt</string>
+    <string name="pocket_stat_known">known hazards nearby</string>
+    <string name="pocket_needs_precise">Pocket mode needs your exact location. Tap Allow and choose Precise.</string>
+    <string name="pocket_could_not_start">Pocket mode couldn\'t start. Try again.</string>
+    <string name="pocket_paused_for_camera">Pocket mode stopped. The camera drive takes over.</string>
+
+    <!-- Pocket mode: notification -->
+    <string name="pocket_channel_name">Scanning</string>
+    <string name="pocket_channel_description">Shown while pocket mode feels the road</string>
+    <string name="pocket_notif_title">Pocket mode is on</string>
+    <string name="pocket_notif_starting">Waiting for GPS</string>
+    <string name="pocket_notif_text">%1$s km scanned, %2$s</string>
+    <string name="pocket_stop">Stop</string>
+    <plurals name="pocket_jolts">
+        <item quantity="one">%d jolt felt</item>
+        <item quantity="other">%d jolts felt</item>
+    </plurals>
+
+    <!-- Drive screen -->
+    <string name="drive_end">End drive</string>
+    <string name="drive_status_starting">Getting ready…</string>
+    <string name="drive_status_scanning">Scanning the road</string>
+    <string name="drive_status_no_gps">Finding your location…</string>
+    <string name="drive_status_weak_gps">Weak GPS signal</string>
+    <string name="drive_status_no_location">Location not allowed</string>
+    <string name="drive_status_approximate">Precise location is off</string>
+    <string name="drive_status_error">Detection stopped</string>
+    <string name="drive_detail_waiting_accuracy">Hazards are reported once the position is accurate</string>
+    <string name="drive_detail_no_location">Tap here to allow it. Potholes can\'t be reported without location.</string>
+    <string name="drive_detail_approximate">Tap here and choose Precise location</string>
+    <string name="drive_detail_loading_model">This takes a few seconds</string>
+    <string name="drive_detail_fps">Checking %.1f frames a second</string>
+    <string name="drive_error_model">Pothole detection couldn\'t start. Tap here to try again.</string>
+    <string name="drive_error_camera">Camera unavailable: %1$s</string>
+    <string name="drive_skipped_frame">Skipped a frame: %1$s</string>
+    <string name="drive_alert_sample">Pothole ahead</string>
+    <!-- Warning card title, e.g. "Pothole ahead" -->
+    <string name="drive_alert_ahead">%1$s ahead</string>
+    <!-- Severity word, then "3 drivers" -->
+    <string name="drive_alert_sub">%1$s severity, reported by %2$s</string>
+    <string name="drive_tip_title">Point the camera at the road ahead</string>
+    <string name="drive_tip_body">Mount the phone on the dashboard or windscreen so the bottom half of the picture shows the road. Keep RoadGuard open on the screen: switching to another app pauses scanning. Keep your eyes on driving; RoadGuard reports on its own and speaks warnings out loud.</string>
+    <string name="drive_tip_ok">Got it</string>
+    <string name="drive_stat_reported">reported</string>
+    <string name="drive_stat_km">km scanned</string>
+    <string name="drive_stat_known">known nearby</string>
+    <string name="drive_voice">Voice warnings</string>
+    <string name="drive_voice_on">Voice warnings on</string>
+    <string name="drive_voice_off">Voice warnings off</string>
+    <string name="drive_mark">Report pothole</string>
+    <string name="drive_perm_title">RoadGuard needs the camera and location</string>
+    <string name="drive_perm_body">The camera spots potholes on your phone; nothing is recorded or streamed. Location says where each pothole is so the city can find it.</string>
+    <string name="drive_perm_allow">Allow access</string>
+    <string name="drive_perm_not_now">Not now</string>
+    <string name="drive_wait_gps_to_mark">Waiting for a GPS fix before marking a hazard.</string>
+    <!-- Confirmation card after an automatic report, e.g. "Pothole reported" -->
+    <string name="drive_reported_title">%1$s reported</string>
+    <string name="drive_reported_felt">%1$s severity, felt the jolt</string>
+    <string name="drive_reported_seen">%1$s severity, seen by the camera</string>
+    <string name="drive_marked_title">Hazard marked</string>
+    <string name="drive_marked_body">Thanks. Other drivers will confirm it.</string>
+    <!-- Box label on the camera preview: kind and confidence, e.g. "Pothole 87%" -->
+    <string name="overlay_label">%1$s</string>
+
+    <!-- Spoken warning, e.g. "Pothole ahead, 120 metres" -->
+    <string name="alert_ahead_speech">%1$s ahead, %2$d metres</string>
+
+    <!-- Hazard detail -->
+    <string name="detail_title">Hazard #%1$d</string>
+    <string name="detail_open_in_maps">Open in maps</string>
+    <string name="detail_photo">Photo from a driver\'s camera</string>
+    <string name="detail_no_photo">No photo yet. The next driver to pass with RoadGuard on will add one.</string>
+    <string name="detail_score_caption">severity, out of 100</string>
+    <!-- Severity word and lowercase kind, e.g. "High pothole" -->
+    <string name="detail_severity_kind">%1$s %2$s</string>
+    <string name="detail_summary">First reported %1$s, last seen %2$s</string>
+    <string name="detail_fact_drivers">drivers reported it</string>
+    <string name="detail_fact_sightings">sightings</string>
+    <string name="detail_fact_jolt">jolt strength</string>
+    <!-- Label under the number of days (the number is shown separately) -->
+    <plurals name="detail_days_waiting">
+        <item quantity="one">day waiting for repair</item>
+        <item quantity="other">days waiting for repair</item>
+    </plurals>
+    <plurals name="detail_days_until_closed">
+        <item quantity="one">day until it was closed</item>
+        <item quantity="other">days until it was closed</item>
+    </plurals>
+    <string name="detail_note_fixed">Fixed. Thanks for reporting it.</string>
+    <!-- e.g. "Fixed 3 days ago. Thanks for reporting it." -->
+    <string name="detail_note_fixed_when">Fixed %1$s. Thanks for reporting it.</string>
+    <string name="detail_note_rejected">The city closed this one. It may not have been a road hazard.</string>
+    <string name="detail_note_in_progress">A crew is working on it.</string>
+    <string name="detail_note_in_progress_team">A crew is working on it (%1$s).</string>
+    <string name="detail_note_assigned">Assigned to %1$s.</string>
+    <string name="detail_default_crew">a repair crew</string>
+    <string name="detail_note_likely_fixed">Several cars have driven over this spot without a jolt. It may already be fixed.</string>
+    <string name="detail_note_reopened">This came back after it was marked fixed.</string>
+    <!-- e.g. "Confirmed by 3 drivers." -->
+    <string name="detail_note_verified">Confirmed by %1$s. Waiting for the city to assign a crew.</string>
+    <string name="detail_note_waiting">Confirmed once 2 more drivers see it.</string>
+    <string name="detail_history">History</string>
+    <string name="detail_no_maps">No maps app installed.</string>
+
+    <!-- Hazard detail: vote -->
+    <string name="vote_title_open">Drove past it recently?</string>
+    <string name="vote_title_closed">Is it back?</string>
+    <string name="vote_body_default">Tell the city if it\'s still there. Three drivers saying it\'s fixed closes it.</string>
+    <string name="vote_body_closed">If the pothole has come back, say so and it goes straight back on the city\'s list.</string>
+    <string name="vote_body_said_fixed">You said it\'s fixed.</string>
+    <plurals name="vote_body_said_fixed_more">
+        <item quantity="one">You said it\'s fixed. %d more driver needed to close it.</item>
+        <item quantity="other">You said it\'s fixed. %d more drivers needed to close it.</item>
+    </plurals>
+    <string name="vote_body_said_present">You confirmed it\'s still there. That raises its priority.</string>
+    <string name="vote_still_there">Still there</string>
+    <string name="vote_its_back">It\'s back</string>
+    <string name="vote_its_fixed">It\'s fixed</string>
+    <string name="vote_thanks">Thanks!</string>
+    <!-- Server message, then the points earned -->
+    <plurals name="vote_thanks_points">
+        <item quantity="one">%1$s +%2$d point</item>
+        <item quantity="other">%1$s +%2$d points</item>
+    </plurals>
+
+    <!-- Hazard detail: history -->
+    <string name="timeline_created">First reported</string>
+    <string name="timeline_auto_verified">Verified by drivers</string>
+    <string name="timeline_assigned">Crew assignment</string>
+    <string name="timeline_comment">Note from the city</string>
+    <string name="timeline_vote_fixed">A driver said it\'s fixed</string>
+    <string name="timeline_vote_present">A driver confirmed it\'s still there</string>
+    <string name="timeline_community_resolved">Drivers confirmed it\'s fixed</string>
+    <string name="timeline_reopened">Spotted again after being fixed</string>
+    <string name="timeline_update">Update</string>
+    <!-- When, then who, e.g. "2 hours ago, Ward office" -->
+    <string name="timeline_when">%1$s, %2$s</string>
+
+    <!-- Hazard detail: accountability -->
+    <string name="who_title">Who fixes this</string>
+    <string name="who_contractor_unknown">Contractor not assigned yet</string>
+    <string name="who_tender">Tender %1$s</string>
+    <string name="who_officer">Officer in charge: %1$s</string>
+    <string name="who_due">Due %1$s</string>
+    <plurals name="who_overdue">
+        <item quantity="one">Overdue by %d day</item>
+        <item quantity="other">Overdue by %d days</item>
+    </plurals>
+    <string name="who_escalated">Escalated to %1$s (level %2$d of 3)</string>
+    <string name="who_default_officer">the ward officer</string>
+    <string name="who_warranty">Under warranty: the contractor must fix this at no cost</string>
+    <string name="who_before">Before</string>
+    <string name="who_after">After repair</string>
+    <string name="who_repair_photo">Photo of the repair</string>
+    <string name="send_complaint">Send complaint</string>
+    <string name="share_link">Share link</string>
+    <string name="complaint_chooser">Send the complaint with</string>
+    <string name="share_chooser">Share this hazard</string>
+    <string name="share_link_text">%1$s on %2$s: %3$s</string>
+    <string name="no_app_for_contact">No app on this phone can open that.</string>
+
+    <!-- Map -->
+    <string name="map_chip_open">Open</string>
+    <string name="map_chip_fixed">Fixed</string>
+    <string name="map_chip_all">All</string>
+    <string name="map_my_location">Show my location</string>
+    <string name="map_details">Details</string>
+    <string name="map_finding_location">Still finding your location…</string>
+    <string name="map_nothing">Nothing reported in this area</string>
+    <string name="map_showing_worst">Showing the worst %1$d of %2$d</string>
+    <plurals name="map_in_view">
+        <item quantity="one">%d hazard in view</item>
+        <item quantity="other">%d hazards in view</item>
+    </plurals>
+    <string name="map_offline">Couldn\'t load hazards. Tap to try again.</string>
+    <!-- Summary, then "2 drivers" -->
+    <string name="map_card_sub">%1$s\n%2$s</string>
+    <string name="map_card_sub_seen">%1$s\n%2$s, last seen %3$s</string>
+
+    <!-- Reports -->
+    <string name="reports_title">Your reports</string>
+    <string name="reports_empty_title">No reports yet</string>
+    <string name="reports_empty_body">Start a drive and RoadGuard reports potholes for you. You\'ll see each one here, and when the city fixes it.</string>
+    <string name="reports_load_error">Couldn\'t load your reports</string>
+    <string name="reports_waiting">Waiting to send</string>
+    <string name="reports_waiting_count">Waiting to send (%1$d)</string>
+    <string name="reports_rejected">RoadGuard couldn\'t accept these</string>
+    <string name="reports_sent">Sent</string>
+    <string name="reports_subtitle_empty">Everything you report shows up here.</string>
+    <string name="reports_subtitle_fixed">%1$d sent, %2$d already fixed</string>
+    <string name="reports_subtitle_sent">%1$d sent. You\'ll see when the city fixes them.</string>
+    <string name="report_photo">Report photo</string>
+    <string name="report_on_phone">Saved on your phone</string>
+    <string name="report_not_accepted">Not accepted</string>
+    <string name="report_sending_soon">Sending soon</string>
+    <string name="report_waiting_network">Will send automatically</string>
+    <!-- Time ago, then how many more times the hazard was seen -->
+    <plurals name="report_seen_more">
+        <item quantity="one">%1$s, seen %2$d more time</item>
+        <item quantity="other">%1$s, seen %2$d more times</item>
+    </plurals>
+
+    <!-- Profile -->
+    <string name="profile_km_scanned">km scanned</string>
+    <string name="profile_drives">drives</string>
+    <string name="profile_points_zero">0 points</string>
+    <plurals name="profile_points">
+        <item quantity="one">%d point</item>
+        <item quantity="other">%d points</item>
+    </plurals>
+    <!-- Points still needed, then the next level's name -->
+    <plurals name="profile_points_to_next">
+        <item quantity="one">%1$d point to %2$s</item>
+        <item quantity="other">%1$d points to %2$s</item>
+    </plurals>
+    <string name="profile_top_level">Top level reached. Legendary.</string>
+    <string name="profile_rank_guest">Create an account to appear on the leaderboard</string>
+    <string name="profile_rank_none">Report your first pothole to get ranked</string>
+    <string name="profile_rank">Number %1$d in your city</string>
+    <string name="profile_guest_title">Keep your points on any phone</string>
+    <string name="profile_guest_body">You\'re driving as a guest. An account keeps every report and point you\'ve earned, and puts you on the leaderboard.</string>
+    <string name="profile_done_title">What you\'ve done</string>
+    <string name="profile_leaders_title">Top road guardians</string>
+    <string name="profile_account_guest">Guest account on this phone</string>
+    <string name="profile_stat_reports">reports sent</string>
+    <string name="profile_stat_found">hazards you found first</string>
+    <string name="profile_stat_fixed">fixed after your reports</string>
+    <string name="profile_stat_streak">day streak</string>
+    <string name="profile_nobody">Nobody yet</string>
+    <string name="profile_be_first">Be the first on the board.</string>
+    <string name="profile_leader_you">%1$s (you)</string>
+    <!-- Level name, then number of reports -->
+    <plurals name="profile_leader_meta">
+        <item quantity="one">%1$s, %2$d report</item>
+        <item quantity="other">%1$s, %2$d reports</item>
+    </plurals>
+
+    <!-- Sign out dialog (Settings and Profile) -->
+    <string name="sign_out_title">Sign out?</string>
+    <string name="sign_out_message">Reports waiting on this phone will send after you sign back in.</string>
+    <string name="sign_out_message_guest">You can come back to this guest account on this phone by choosing Start scanning again.</string>
+
+    <!-- Sign in -->
+    <string name="login_tagline">Your phone spots potholes while you drive. Your city sees them, ranked by what to fix first.</string>
+    <string name="login_how_it_works">How it works</string>
+    <string name="login_step1_title">Mount your phone</string>
+    <string name="login_step1_body">On the dashboard or windscreen, camera facing the road ahead.</string>
+    <string name="login_step2_title">Drive as usual</string>
+    <string name="login_step2_body">RoadGuard watches the road and feels every jolt. No tapping needed.</string>
+    <string name="login_step3_title">Your city fixes it</string>
+    <string name="login_step3_body">Potholes go to the city\'s repair queue. You see when yours get fixed.</string>
+    <string name="login_start">Start scanning</string>
+    <string name="login_start_hint">No account needed. You can add one later and keep your points.</string>
+    <string name="login_sign_in">Sign in</string>
+    <string name="login_create_account">Create an account</string>
+    <string name="login_title_register">Create your account</string>
+    <string name="login_subtitle_sign_in">Pick up where you left off.</string>
+    <string name="login_subtitle_register">Keep your points and reports on any phone.</string>
+    <string name="login_subtitle_upgrade">Your reports and points move to this account.</string>
+    <string name="login_hint_name">Your name</string>
+    <string name="login_hint_email">Email</string>
+    <string name="login_hint_password">Password</string>
+    <string name="login_switch_to_register">New here? Create an account</string>
+    <string name="login_switch_to_sign_in">Already have an account? Sign in</string>
+    <string name="login_upgrade_title">Keep your points</string>
+    <string name="login_upgrade_body">Create an account and every report you\'ve made so far stays yours, on any phone.</string>
+    <!-- Two spaces before the bracket -->
+    <string name="login_server_line">Server: %1$s  (tap to change)</string>
+    <string name="login_error_name">Tell us your name</string>
+    <string name="login_error_email">Enter a valid email address</string>
+    <string name="login_error_password_short">Use at least 6 characters</string>
+    <string name="login_error_password_empty">Enter your password</string>
+    <string name="login_failed">Sign in failed. Please try again.</string>
+    <!-- Error message, blank line, then the server address -->
+    <string name="login_error_offline">%1$s\n\nServer: %2$s</string>
+    <string name="login_couldnt_start">Couldn\'t connect</string>
+
+    <!-- Settings -->
+    <string name="settings_section_language">Language</string>
+    <string name="settings_language_default">Phone default</string>
+    <string name="language_english" translatable="false">English</string>
+    <string name="language_hindi" translatable="false">हिन्दी</string>
+    <string name="settings_section_driving">While driving</string>
+    <string name="settings_voice">Speak warnings out loud</string>
+    <string name="settings_vibrate">Vibrate for warnings and reports</string>
+    <string name="settings_require_bump">Only report potholes I drive over</string>
+    <string name="settings_require_bump_help">Off: clear potholes are reported even if you steer around them. On: fewer reports, almost no false ones.</string>
+    <string name="settings_sensitivity">Bump sensitivity</string>
+    <string name="settings_sens_low">Low</string>
+    <string name="settings_sens_normal">Normal</string>
+    <string name="settings_sens_high">High</string>
+    <string name="settings_sens_help">Use Low for stiff suspension or a loose phone mount, High for a soft ride.</string>
+    <string name="settings_show_tip">Show the mounting tip again</string>
+    <string name="settings_tip_toast">You\'ll see it on your next drive.</string>
+    <string name="settings_section_uploads">Uploads</string>
+    <string name="settings_wifi_only">Send reports on Wi-Fi only</string>
+    <string name="settings_send_now">Send now</string>
+    <string name="settings_send_toast">Sending as soon as there\'s a connection.</string>
+    <string name="settings_queue_empty">Everything is sent.</string>
+    <plurals name="settings_queue_waiting">
+        <item quantity="one">%d report is waiting on this phone.</item>
+        <item quantity="other">%d reports are waiting on this phone.</item>
+    </plurals>
+    <string name="settings_section_server">Server</string>
+    <string name="settings_server_help">Where reports are sent. Changing it signs you out, since accounts belong to a server.</string>
+    <string name="settings_change">Change</string>
+    <string name="settings_test">Test connection</string>
+    <string name="settings_section_account">Account</string>
+    <string name="settings_account_guest">Driving as a guest on this phone</string>
+    <string name="settings_account_signed_in">Signed in as %1$s</string>
+    <!-- Version name, then the privacy note -->
+    <string name="settings_about">RoadGuard %1$s\nDetection runs entirely on your phone. Nothing is recorded or streamed; a single photo is sent only with each report, so the city can see the hazard.</string>
+
+    <!-- Server dialog -->
+    <string name="server_title">RoadGuard server</string>
+    <string name="server_hint">Server address</string>
+    <string name="server_helper">Shown in the terminal when the backend starts, e.g. http://192.168.1.20:5000/</string>
+    <string name="server_save">Save and test</string>
+    <string name="server_connected">Connected to %1$s</string>
+
+    <!-- Network errors -->
+    <string name="error_sign_in_again">Please sign in again.</string>
+    <string name="error_forbidden">You don\'t have access to that.</string>
+    <string name="error_not_found">That item no longer exists.</string>
+    <string name="error_server">The RoadGuard server had a problem. Try again in a moment.</string>
+    <string name="error_http">Something went wrong (%1$d).</string>
+    <string name="error_offline">Can\'t connect to RoadGuard right now. Check your mobile data or Wi-Fi and try again.</string>
+    <string name="error_bad_server_url">The server address in Settings isn\'t valid.</string>
+    <string name="error_generic">Something went wrong.</string>
+
+    <!-- Usability pass, Oct 2026 -->
+    <string name="drive_end_short">End</string>
+    <string name="drive_end_title">End this drive?</string>
+    <string name="drive_keep_driving">Keep driving</string>
+    <string name="drive_summary_km">You scanned %1$s km of road.</string>
+    <string name="drive_summary_none">No potholes this time. Thanks for checking the road.</string>
+    <string name="drive_detail_watching">Watching the road</string>
+    <string name="drive_status_location_off">Phone location is off</string>
+    <string name="drive_detail_location_off">Tap here to turn it on</string>
+    <string name="drive_error_camera_friendly">The camera couldn\'t start. Close other camera apps and tap here.</string>
+    <string name="location_blocked_hint">Location is blocked for RoadGuard. Tap Permissions, then Location, and choose Allow.</string>
+    <string name="login_offline_started">No connection right now, but you can drive. Reports are saved on your phone and sent when you\'re back online.</string>
+    <string name="tap_to_retry">Tap to try again</string>
+    <string name="profile_guest_name">Guest driver</string>
+    <plurals name="drive_summary_reports">
+        <item quantity="one">%d pothole reported. It\'s on its way to the city.</item>
+        <item quantity="other">%d potholes reported. They\'re on their way to the city.</item>
+    </plurals>
+</resources>

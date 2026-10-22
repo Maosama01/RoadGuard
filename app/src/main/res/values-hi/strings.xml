@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Hindi. Everyday Hindi a driver in Dehradun or Delhi uses; common English loanwords are kept.
+     Hindi plurals: "one" covers 0 and 1, "other" the rest. Labels shown next to a separate number
+     have no %d, hence tools:ignore="ImpliedQuantity". -->
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">RoadGuard</string>
+
+    <!-- Common -->
+    <string name="action_back">वापस</string>
+    <string name="action_cancel">रद्द करें</string>
+    <string name="action_ok">ठीक है</string>
+    <string name="action_try_again">फिर से कोशिश करें</string>
+    <string name="action_settings">सेटिंग्स</string>
+    <string name="action_sign_out">साइन आउट</string>
+    <string name="action_create_account">अकाउंट बनाएं</string>
+    <string name="action_change_server">सर्वर बदलें</string>
+    <string name="action_start_drive">ड्राइव शुरू करें</string>
+    <string name="speech_language_tag">hi</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_home">होम</string>
+    <string name="nav_map">मैप</string>
+    <string name="nav_drive">ड्राइव</string>
+    <string name="nav_reports">रिपोर्ट</string>
+    <string name="nav_profile">प्रोफ़ाइल</string>
+
+    <!-- Hazard kinds -->
+    <string name="kind_pothole">गड्ढा</string>
+    <string name="kind_drain_hole">खुला नाला</string>
+    <string name="kind_sewer_cover">सीवर का ढक्कन</string>
+    <string name="kind_crack">टूटी सड़क</string>
+    <string name="kind_bump">ऊबड़-खाबड़ सड़क</string>
+    <string name="kind_other">सड़क पर ख़तरा</string>
+
+    <!-- Severity levels -->
+    <string name="severity_low">कम</string>
+    <string name="severity_medium">मध्यम</string>
+    <string name="severity_high">ज़्यादा</string>
+    <string name="severity_critical">गंभीर</string>
+
+    <!-- Hazard status -->
+    <string name="status_reported">रिपोर्ट हुआ</string>
+    <string name="status_verified">पुष्टि हुई</string>
+    <string name="status_assigned">टीम तय</string>
+    <string name="status_in_progress">मरम्मत जारी</string>
+    <string name="status_resolved">ठीक हुआ</string>
+    <string name="status_rejected">शहर ने बंद किया</string>
+
+    <!-- Shared formatting: "गड्ढा, ज़्यादा ख़तरा" -->
+    <string name="hazard_summary">%1$s, %2$s ख़तरा</string>
+    <string name="hazard_summary_with_drivers">%1$s, %2$s</string>
+    <string name="road_unnamed">बिना नाम की सड़क</string>
+    <string name="time_just_now">अभी-अभी</string>
+    <string name="distance_m">%d मीटर</string>
+    <string name="distance_km">%.1f किमी</string>
+    <plurals name="drivers">
+        <item quantity="one">%d ड्राइवर</item>
+        <item quantity="other">%d ड्राइवर</item>
+    </plurals>
+    <string name="greeting_morning">सुप्रभात</string>
+    <string name="greeting_afternoon">नमस्ते</string>
+    <string name="greeting_evening">शुभ संध्या</string>
+    <string name="unit_km_h">किमी/घंटा</string>
+    <string name="percent">%1$d%%</string>
+
+    <!-- Home -->
+    <string name="home_drive_title">अपनी ड्राइव से सड़क का सर्वे करें</string>
+    <string name="home_drive_body">फ़ोन को सड़क की तरफ़ लगाएं। RoadGuard गड्ढे पहचानकर आपकी तरफ़ से रिपोर्ट कर देता है।</string>
+    <string name="home_error_title">अभी कनेक्ट नहीं हो पा रहा</string>
+    <string name="home_error_body">आप फिर भी ड्राइव कर सकते हैं। रिपोर्ट आपके फ़ोन में सेव रहती हैं और बाद में भेज दी जाती हैं।</string>
+    <string name="home_near_you">आपके आस-पास</string>
+    <string name="home_open_map">मैप खोलें</string>
+    <string name="home_near_label_default">2 किमी के अंदर खुले ख़तरे</string>
+    <plurals name="home_near_label" tools:ignore="ImpliedQuantity">
+        <item quantity="one">2 किमी के अंदर खुला ख़तरा</item>
+        <item quantity="other">2 किमी के अंदर खुले ख़तरे</item>
+    </plurals>
+    <string name="home_finding_location">आपकी लोकेशन ढूंढ रहे हैं…</string>
+    <string name="home_allow_location">लोकेशन की अनुमति दें</string>
+    <string name="home_your_impact">आपका योगदान</string>
+    <string name="home_guest_hint">आप गेस्ट के तौर पर ड्राइव कर रहे हैं। अकाउंट बनाएं ताकि आपके पॉइंट किसी भी फ़ोन पर आपके साथ रहें।</string>
+    <string name="home_across_city">पूरे शहर में</string>
+    <string name="home_stat_reports">रिपोर्ट भेजीं</string>
+    <string name="home_stat_fixed">आपकी रिपोर्ट के बाद ठीक हुए</string>
+    <string name="home_stat_points">पॉइंट</string>
+    <string name="home_stat_city_open">खुले ख़तरे</string>
+    <string name="home_stat_city_fixed">ख़तरे ठीक हो चुके</string>
+    <string name="home_stat_city_today">आज देखे गए</string>
+    <plurals name="home_pending">
+        <item quantity="one">%d रिपोर्ट भेजनी बाकी है। ऑनलाइन होते ही यह अपने-आप चली जाएगी।</item>
+        <item quantity="other">%d रिपोर्ट भेजनी बाकी हैं। ऑनलाइन होते ही ये अपने-आप चली जाएंगी।</item>
+    </plurals>
+    <string name="home_near_need_location">आस-पास के ख़तरे देखने के लिए लोकेशन चालू करें।</string>
+    <string name="home_near_waiting_fix">आपकी लोकेशन ढूंढ रहे हैं…</string>
+    <string name="home_near_error">आस-पास के ख़तरे लोड नहीं हो पाए।</string>
+    <string name="home_near_none">आपके आस-पास कुछ भी रिपोर्ट नहीं हुआ है। ड्राइव करते रहें ताकि ऐसा ही रहे।</string>
+    <!-- Road, severity, distance -->
+    <string name="home_near_worst">सबसे ख़राब: %1$s, %2$s ख़तरा, %3$s दूर</string>
+
+    <!-- Pocket mode: Home card -->
+    <string name="pocket_title">पॉकेट मोड</string>
+    <string name="pocket_body">फ़ोन को जेब या होल्डर में रखें। RoadGuard गड्ढों को महसूस करता है और पहले से पता गड्ढों के बारे में चेतावनी देता है।</string>
+    <string name="pocket_running_body">स्क्रीन बंद होने पर भी चल रहा है। इसे यहाँ से या नोटिफ़िकेशन से बंद करें।</string>
+    <string name="pocket_on">चालू</string>
+    <string name="pocket_start">पॉकेट मोड शुरू करें</string>
+    <string name="pocket_stop_long">पॉकेट मोड बंद करें</string>
+    <string name="pocket_stat_km">किमी स्कैन किए</string>
+    <string name="pocket_stat_jolts">झटके महसूस हुए</string>
+    <string name="pocket_stat_known">आस-पास रिपोर्ट हुए ख़तरे</string>
+    <string name="pocket_needs_precise">पॉकेट मोड को आपकी सटीक लोकेशन चाहिए। अनुमति दें पर टैप करें और सटीक चुनें।</string>
+    <string name="pocket_could_not_start">पॉकेट मोड शुरू नहीं हो पाया। फिर से कोशिश करें।</string>
+    <string name="pocket_paused_for_camera">पॉकेट मोड बंद हो गया। अब कैमरा ड्राइव काम करेगी।</string>
+
+    <!-- Pocket mode: notification -->
+    <string name="pocket_channel_name">स्कैनिंग</string>
+    <string name="pocket_channel_description">जब पॉकेट मोड सड़क को महसूस कर रहा हो, तब दिखता है</string>
+    <string name="pocket_notif_title">पॉकेट मोड चालू है</string>
+    <string name="pocket_notif_starting">GPS का इंतज़ार है</string>
+    <string name="pocket_notif_text">%1$s किमी स्कैन किए, %2$s</string>
+    <string name="pocket_stop">बंद करें</string>
+    <plurals name="pocket_jolts">
+        <item quantity="one">%d झटका महसूस हुआ</item>
+        <item quantity="other">%d झटके महसूस हुए</item>
+    </plurals>
+
+    <!-- Drive screen -->
+    <string name="drive_end">ड्राइव ख़त्म करें</string>
+    <string name="drive_status_starting">तैयार हो रहा है…</string>
+    <string name="drive_status_scanning">सड़क स्कैन हो रही है</string>
+    <string name="drive_status_no_gps">आपकी लोकेशन ढूंढ रहे हैं…</string>
+    <string name="drive_status_weak_gps">GPS सिग्नल कमज़ोर है</string>
+    <string name="drive_status_no_location">लोकेशन की अनुमति नहीं है</string>
+    <string name="drive_status_approximate">सटीक लोकेशन बंद है</string>
+    <string name="drive_status_error">पहचान रुक गई</string>
+    <string name="drive_detail_waiting_accuracy">सही लोकेशन मिलते ही ख़तरे रिपोर्ट होंगे</string>
+    <string name="drive_detail_no_location">अनुमति देने के लिए यहां टैप करें। लोकेशन के बिना गड्ढे रिपोर्ट नहीं हो सकते।</string>
+    <string name="drive_detail_approximate">यहां टैप करें और सटीक लोकेशन चुनें</string>
+    <string name="drive_detail_loading_model">इसमें कुछ सेकंड लगते हैं</string>
+    <string name="drive_detail_fps">हर सेकंड %.1f फ़्रेम जांच रहे हैं</string>
+    <string name="drive_error_model">गड्ढों की पहचान शुरू नहीं हो पाई। फिर से कोशिश करने के लिए यहां टैप करें।</string>
+    <string name="drive_error_camera">कैमरा नहीं मिल रहा: %1$s</string>
+    <string name="drive_skipped_frame">एक फ़्रेम छूट गया: %1$s</string>
+    <string name="drive_alert_sample">आगे गड्ढा है</string>
+    <!-- "आगे गड्ढा है" -->
+    <string name="drive_alert_ahead">आगे %1$s है</string>
+    <!-- Severity word, then "3 ड्राइवर" -->
+    <string name="drive_alert_sub">%1$s ख़तरा, रिपोर्ट: %2$s</string>
+    <string name="drive_tip_title">कैमरे को आगे की सड़क की तरफ़ रखें</string>
+    <string name="drive_tip_body">फ़ोन को डैशबोर्ड या विंडस्क्रीन पर ऐसे लगाएं कि तस्वीर के निचले आधे हिस्से में सड़क दिखे। RoadGuard को स्क्रीन पर खुला रखें: दूसरा ऐप खोलने पर स्कैनिंग रुक जाती है। आपका ध्यान ड्राइविंग पर रहे; RoadGuard ख़ुद रिपोर्ट करता है और चेतावनी बोलकर देता है।</string>
+    <string name="drive_tip_ok">समझ गया</string>
+    <string name="drive_stat_reported">रिपोर्ट किए</string>
+    <string name="drive_stat_km">किमी स्कैन किए</string>
+    <string name="drive_stat_known">आस-पास रिपोर्ट हुए</string>
+    <string name="drive_voice">आवाज़ में चेतावनी</string>
+    <string name="drive_voice_on">आवाज़ में चेतावनी चालू</string>
+    <string name="drive_voice_off">आवाज़ में चेतावनी बंद</string>
+    <string name="drive_mark">गड्ढा रिपोर्ट करें</string>
+    <string name="drive_perm_title">RoadGuard को कैमरा और लोकेशन चाहिए</string>
+    <string name="drive_perm_body">कैमरा आपके फ़ोन पर ही गड्ढे पहचानता है; कुछ भी रिकॉर्ड या स्ट्रीम नहीं होता। लोकेशन से पता चलता है कि हर गड्ढा कहाँ है, ताकि शहर उसे ढूंढ सके।</string>
+    <string name="drive_perm_allow">अनुमति दें</string>
+    <string name="drive_perm_not_now">अभी नहीं</string>
+    <string name="drive_wait_gps_to_mark">ख़तरा मार्क करने से पहले GPS लोकेशन का इंतज़ार है।</string>
+    <string name="drive_reported_title">रिपोर्ट किया: %1$s</string>
+    <string name="drive_reported_felt">%1$s ख़तरा, झटका महसूस हुआ</string>
+    <string name="drive_reported_seen">%1$s ख़तरा, कैमरे ने देखा</string>
+    <string name="drive_marked_title">ख़तरा मार्क हो गया</string>
+    <string name="drive_marked_body">धन्यवाद। बाकी ड्राइवर इसकी पुष्टि करेंगे।</string>
+    <string name="overlay_label">%1$s</string>
+
+    <!-- Spoken warning: "आगे गड्ढा है, 120 मीटर" -->
+    <string name="alert_ahead_speech">आगे %1$s है, %2$d मीटर</string>
+
+    <!-- Hazard detail -->
+    <string name="detail_title">ख़तरा #%1$d</string>
+    <string name="detail_open_in_maps">मैप में खोलें</string>
+    <string name="detail_photo">ड्राइवर के कैमरे से ली गई फ़ोटो</string>
+    <string name="detail_no_photo">अभी कोई फ़ोटो नहीं है। RoadGuard चालू करके यहाँ से गुज़रने वाला अगला ड्राइवर फ़ोटो जोड़ देगा।</string>
+    <string name="detail_score_caption">ख़तरा, 100 में से</string>
+    <!-- Kind first in Hindi: "गड्ढा, ज़्यादा ख़तरा" -->
+    <string name="detail_severity_kind">%2$s, %1$s ख़तरा</string>
+    <string name="detail_summary">पहली रिपोर्ट %1$s, आख़िरी बार %2$s देखा गया</string>
+    <string name="detail_fact_drivers">ड्राइवरों ने रिपोर्ट किया</string>
+    <string name="detail_fact_sightings">बार देखा गया</string>
+    <string name="detail_fact_jolt">झटके की ताक़त</string>
+    <plurals name="detail_days_waiting" tools:ignore="ImpliedQuantity">
+        <item quantity="one">दिन से मरम्मत का इंतज़ार</item>
+        <item quantity="other">दिन से मरम्मत का इंतज़ार</item>
+    </plurals>
+    <plurals name="detail_days_until_closed" tools:ignore="ImpliedQuantity">
+        <item quantity="one">दिन में बंद हुआ</item>
+        <item quantity="other">दिन में बंद हुआ</item>
+    </plurals>
+    <string name="detail_note_fixed">ठीक हो गया। रिपोर्ट करने के लिए धन्यवाद।</string>
+    <!-- "3 दिन पहले ठीक हुआ।" -->
+    <string name="detail_note_fixed_when">%1$s ठीक हुआ। रिपोर्ट करने के लिए धन्यवाद।</string>
+    <string name="detail_note_rejected">शहर ने इसे बंद कर दिया। शायद यह सड़क का ख़तरा नहीं था।</string>
+    <string name="detail_note_in_progress">टीम इस पर काम कर रही है।</string>
+    <string name="detail_note_in_progress_team">टीम इस पर काम कर रही है (%1$s)।</string>
+    <string name="detail_note_assigned">%1$s को सौंपा गया।</string>
+    <string name="detail_default_crew">मरम्मत टीम</string>
+    <string name="detail_note_likely_fixed">कई गाड़ियां बिना झटके के यहाँ से गुज़री हैं। हो सकता है यह ठीक हो चुका हो।</string>
+    <string name="detail_note_reopened">ठीक बताए जाने के बाद यह फिर से आ गया।</string>
+    <string name="detail_note_verified">पुष्टि: %1$s। शहर के टीम भेजने का इंतज़ार है।</string>
+    <string name="detail_note_waiting">2 और ड्राइवरों के देखने पर इसकी पुष्टि हो जाएगी।</string>
+    <string name="detail_history">इतिहास</string>
+    <string name="detail_no_maps">कोई मैप ऐप इंस्टॉल नहीं है।</string>
+
+    <!-- Hazard detail: vote -->
+    <string name="vote_title_open">हाल ही में यहाँ से गुज़रे?</string>
+    <string name="vote_title_closed">क्या यह फिर से आ गया?</string>
+    <string name="vote_body_default">शहर को बताएं कि यह अभी भी है या नहीं। तीन ड्राइवर इसे ठीक बताएं तो यह बंद हो जाता है।</string>
+    <string name="vote_body_closed">अगर गड्ढा फिर से बन गया है तो बताएं, यह सीधे शहर की लिस्ट में वापस चला जाएगा।</string>
+    <string name="vote_body_said_fixed">आपने बताया कि यह ठीक हो गया है।</string>
+    <plurals name="vote_body_said_fixed_more">
+        <item quantity="one">आपने बताया कि यह ठीक हो गया है। इसे बंद करने के लिए %d और ड्राइवर चाहिए।</item>
+        <item quantity="other">आपने बताया कि यह ठीक हो गया है। इसे बंद करने के लिए %d और ड्राइवर चाहिए।</item>
+    </plurals>
+    <string name="vote_body_said_present">आपने पुष्टि की कि यह अभी भी है। इससे इसकी प्राथमिकता बढ़ जाती है।</string>
+    <string name="vote_still_there">अभी भी है</string>
+    <string name="vote_its_back">फिर से आ गया</string>
+    <string name="vote_its_fixed">ठीक हो गया</string>
+    <string name="vote_thanks">धन्यवाद!</string>
+    <plurals name="vote_thanks_points">
+        <item quantity="one">%1$s +%2$d पॉइंट</item>
+        <item quantity="other">%1$s +%2$d पॉइंट</item>
+    </plurals>
+
+    <!-- Hazard detail: history -->
+    <string name="timeline_created">पहली रिपोर्ट</string>
+    <string name="timeline_auto_verified">ड्राइवरों ने पुष्टि की</string>
+    <string name="timeline_assigned">टीम तय हुई</string>
+    <string name="timeline_comment">शहर की ओर से नोट</string>
+    <string name="timeline_vote_fixed">एक ड्राइवर ने बताया कि ठीक हो गया</string>
+    <string name="timeline_vote_present">एक ड्राइवर ने पुष्टि की कि अभी भी है</string>
+    <string name="timeline_community_resolved">ड्राइवरों ने पुष्टि की कि ठीक हो गया</string>
+    <string name="timeline_reopened">ठीक होने के बाद फिर से दिखा</string>
+    <string name="timeline_update">अपडेट</string>
+    <string name="timeline_when">%1$s, %2$s</string>
+
+    <!-- Hazard detail: accountability -->
+    <string name="who_title">इसे कौन ठीक करेगा</string>
+    <string name="who_contractor_unknown">अभी ठेकेदार तय नहीं हुआ</string>
+    <string name="who_tender">टेंडर %1$s</string>
+    <string name="who_officer">ज़िम्मेदार अधिकारी: %1$s</string>
+    <string name="who_due">आख़िरी तारीख़ %1$s</string>
+    <plurals name="who_overdue">
+        <item quantity="one">%d दिन की देरी</item>
+        <item quantity="other">%d दिन की देरी</item>
+    </plurals>
+    <string name="who_escalated">%1$s तक पहुंचाया गया (3 में से लेवल %2$d)</string>
+    <string name="who_default_officer">वार्ड अधिकारी</string>
+    <string name="who_warranty">वारंटी में है: ठेकेदार को इसे मुफ़्त में ठीक करना होगा</string>
+    <string name="who_before">पहले</string>
+    <string name="who_after">मरम्मत के बाद</string>
+    <string name="who_repair_photo">मरम्मत की फ़ोटो</string>
+    <string name="send_complaint">शिकायत भेजें</string>
+    <string name="share_link">लिंक शेयर करें</string>
+    <string name="complaint_chooser">शिकायत इससे भेजें</string>
+    <string name="share_chooser">यह ख़तरा शेयर करें</string>
+    <!-- Road first in Hindi: "राजपुर रोड पर गड्ढा: link" -->
+    <string name="share_link_text">%2$s पर %1$s: %3$s</string>
+    <string name="no_app_for_contact">इस फ़ोन में इसे खोलने वाला कोई ऐप नहीं है।</string>
+
+    <!-- Map -->
+    <string name="map_chip_open">खुले</string>
+    <string name="map_chip_fixed">ठीक हुए</string>
+    <string name="map_chip_all">सभी</string>
+    <string name="map_my_location">मेरी लोकेशन दिखाएं</string>
+    <string name="map_details">पूरी जानकारी</string>
+    <string name="map_finding_location">अभी आपकी लोकेशन ढूंढ रहे हैं…</string>
+    <string name="map_nothing">इस इलाके में कुछ भी रिपोर्ट नहीं हुआ</string>
+    <string name="map_showing_worst">%2$d में से सबसे ख़राब %1$d दिखा रहे हैं</string>
+    <plurals name="map_in_view">
+        <item quantity="one">%d ख़तरा दिख रहा है</item>
+        <item quantity="other">%d ख़तरे दिख रहे हैं</item>
+    </plurals>
+    <string name="map_offline">ख़तरे लोड नहीं हो पाए। फिर से कोशिश करने के लिए टैप करें।</string>
+    <string name="map_card_sub">%1$s\n%2$s</string>
+    <string name="map_card_sub_seen">%1$s\n%2$s, आख़िरी बार %3$s देखा गया</string>
+
+    <!-- Reports -->
+    <string name="reports_title">आपकी रिपोर्ट</string>
+    <string name="reports_empty_title">अभी कोई रिपोर्ट नहीं</string>
+    <string name="reports_empty_body">ड्राइव शुरू करें और RoadGuard आपकी तरफ़ से गड्ढे रिपोर्ट करेगा। हर रिपोर्ट यहाँ दिखेगी, और यह भी कि शहर ने उसे कब ठीक किया।</string>
+    <string name="reports_load_error">आपकी रिपोर्ट लोड नहीं हो पाईं</string>
+    <string name="reports_waiting">भेजनी बाकी</string>
+    <string name="reports_waiting_count">भेजनी बाकी (%1$d)</string>
+    <string name="reports_rejected">RoadGuard इन्हें स्वीकार नहीं कर पाया</string>
+    <string name="reports_sent">भेजी गईं</string>
+    <string name="reports_subtitle_empty">आप जो भी रिपोर्ट करेंगे, वह यहाँ दिखेगा।</string>
+    <string name="reports_subtitle_fixed">%1$d भेजीं, %2$d ठीक हो चुकीं</string>
+    <string name="reports_subtitle_sent">%1$d भेजीं। शहर इन्हें ठीक करेगा तो आपको यहाँ दिखेगा।</string>
+    <string name="report_photo">रिपोर्ट की फ़ोटो</string>
+    <string name="report_on_phone">आपके फ़ोन में सेव है</string>
+    <string name="report_not_accepted">स्वीकार नहीं हुई</string>
+    <string name="report_sending_soon">जल्द भेजी जाएगी</string>
+    <string name="report_waiting_network">अपने आप भेजी जाएगी</string>
+    <plurals name="report_seen_more">
+        <item quantity="one">%1$s, %2$d बार और देखा गया</item>
+        <item quantity="other">%1$s, %2$d बार और देखा गया</item>
+    </plurals>
+
+    <!-- Profile -->
+    <string name="profile_km_scanned">किमी स्कैन किए</string>
+    <string name="profile_drives">ड्राइव</string>
+    <string name="profile_points_zero">0 पॉइंट</string>
+    <plurals name="profile_points">
+        <item quantity="one">%d पॉइंट</item>
+        <item quantity="other">%d पॉइंट</item>
+    </plurals>
+    <!-- "Explorer तक 40 पॉइंट और" -->
+    <plurals name="profile_points_to_next">
+        <item quantity="one">%2$s तक %1$d पॉइंट और</item>
+        <item quantity="other">%2$s तक %1$d पॉइंट और</item>
+    </plurals>
+    <string name="profile_top_level">सबसे ऊंचा लेवल मिल गया। कमाल!</string>
+    <string name="profile_rank_guest">लीडरबोर्ड पर आने के लिए अकाउंट बनाएं</string>
+    <string name="profile_rank_none">रैंक पाने के लिए अपना पहला गड्ढा रिपोर्ट करें</string>
+    <string name="profile_rank">आपके शहर में नंबर %1$d</string>
+    <string name="profile_guest_title">अपने पॉइंट किसी भी फ़ोन पर रखें</string>
+    <string name="profile_guest_body">आप गेस्ट के तौर पर ड्राइव कर रहे हैं। अकाउंट से आपकी हर रिपोर्ट और कमाया हुआ हर पॉइंट सुरक्षित रहता है, और आप लीडरबोर्ड पर आ जाते हैं।</string>
+    <string name="profile_done_title">आपने अब तक क्या किया</string>
+    <string name="profile_leaders_title">टॉप रोड गार्डियन</string>
+    <string name="profile_account_guest">इस फ़ोन पर गेस्ट अकाउंट</string>
+    <string name="profile_stat_reports">रिपोर्ट भेजीं</string>
+    <string name="profile_stat_found">ख़तरे जो सबसे पहले आपने ढूंढे</string>
+    <string name="profile_stat_fixed">आपकी रिपोर्ट के बाद ठीक हुए</string>
+    <string name="profile_stat_streak">दिन लगातार</string>
+    <string name="profile_nobody">अभी कोई नहीं</string>
+    <string name="profile_be_first">बोर्ड पर पहला नाम आपका हो।</string>
+    <string name="profile_leader_you">%1$s (आप)</string>
+    <plurals name="profile_leader_meta">
+        <item quantity="one">%1$s, %2$d रिपोर्ट</item>
+        <item quantity="other">%1$s, %2$d रिपोर्ट</item>
+    </plurals>
+
+    <!-- Sign out dialog (Settings and Profile) -->
+    <string name="sign_out_title">साइन आउट करें?</string>
+    <string name="sign_out_message">इस फ़ोन पर रुकी रिपोर्ट आपके दोबारा साइन इन करने के बाद भेजी जाएंगी।</string>
+    <string name="sign_out_message_guest">आप इस फ़ोन पर “स्कैनिंग शुरू करें” चुनकर इस गेस्ट अकाउंट में वापस आ सकते हैं।</string>
+
+    <!-- Sign in -->
+    <string name="login_tagline">गाड़ी चलाते समय आपका फ़ोन गड्ढे पहचानता है। शहर उन्हें देखता है, इस क्रम में कि पहले क्या ठीक करना है।</string>
+    <string name="login_how_it_works">यह कैसे काम करता है</string>
+    <string name="login_step1_title">फ़ोन लगाएं</string>
+    <string name="login_step1_body">डैशबोर्ड या विंडस्क्रीन पर, कैमरा आगे की सड़क की तरफ़।</string>
+    <string name="login_step2_title">हमेशा की तरह चलाएं</string>
+    <string name="login_step2_body">RoadGuard सड़क देखता है और हर झटका महसूस करता है। कुछ भी दबाने की ज़रूरत नहीं।</string>
+    <string name="login_step3_title">शहर उसे ठीक करता है</string>
+    <string name="login_step3_body">गड्ढे शहर की मरम्मत लिस्ट में जाते हैं। आपके बताए गड्ढे कब ठीक हुए, यह आपको दिखता है।</string>
+    <string name="login_start">स्कैनिंग शुरू करें</string>
+    <string name="login_start_hint">अकाउंट की ज़रूरत नहीं। बाद में अकाउंट जोड़कर अपने पॉइंट रख सकते हैं।</string>
+    <string name="login_sign_in">साइन इन करें</string>
+    <string name="login_create_account">अकाउंट बनाएं</string>
+    <string name="login_title_register">अपना अकाउंट बनाएं</string>
+    <string name="login_subtitle_sign_in">जहाँ छोड़ा था, वहीं से शुरू करें।</string>
+    <string name="login_subtitle_register">अपने पॉइंट और रिपोर्ट किसी भी फ़ोन पर रखें।</string>
+    <string name="login_subtitle_upgrade">आपकी रिपोर्ट और पॉइंट इस अकाउंट में आ जाएंगे।</string>
+    <string name="login_hint_name">आपका नाम</string>
+    <string name="login_hint_email">ईमेल</string>
+    <string name="login_hint_password">पासवर्ड</string>
+    <string name="login_switch_to_register">नए हैं? अकाउंट बनाएं</string>
+    <string name="login_switch_to_sign_in">पहले से अकाउंट है? साइन इन करें</string>
+    <string name="login_upgrade_title">अपने पॉइंट बचाएं</string>
+    <string name="login_upgrade_body">अकाउंट बनाएं, और अब तक की आपकी हर रिपोर्ट आपकी ही रहेगी, किसी भी फ़ोन पर।</string>
+    <string name="login_server_line">सर्वर: %1$s  (बदलने के लिए टैप करें)</string>
+    <string name="login_error_name">अपना नाम बताएं</string>
+    <string name="login_error_email">सही ईमेल पता डालें</string>
+    <string name="login_error_password_short">कम से कम 6 अक्षर रखें</string>
+    <string name="login_error_password_empty">अपना पासवर्ड डालें</string>
+    <string name="login_failed">साइन इन नहीं हो पाया। फिर से कोशिश करें।</string>
+    <string name="login_error_offline">%1$s\n\nसर्वर: %2$s</string>
+    <string name="login_couldnt_start">कनेक्ट नहीं हो पाया</string>
+
+    <!-- Settings -->
+    <string name="settings_section_language">भाषा</string>
+    <string name="settings_language_default">फ़ोन की भाषा</string>
+    <string name="settings_section_driving">ड्राइव करते समय</string>
+    <string name="settings_voice">चेतावनी बोलकर सुनाएं</string>
+    <string name="settings_vibrate">चेतावनी और रिपोर्ट पर वाइब्रेट करें</string>
+    <string name="settings_require_bump">सिर्फ़ वही गड्ढे रिपोर्ट करें जिन पर से मैं गुज़रूं</string>
+    <string name="settings_require_bump_help">बंद: साफ़ दिखने वाले गड्ढे रिपोर्ट होंगे, चाहे आप उनसे बचकर निकल जाएं। चालू: रिपोर्ट कम होंगी, पर ग़लत रिपोर्ट लगभग नहीं।</string>
+    <string name="settings_sensitivity">झटके की सेंसिटिविटी</string>
+    <string name="settings_sens_low">कम</string>
+    <string name="settings_sens_normal">सामान्य</string>
+    <string name="settings_sens_high">ज़्यादा</string>
+    <string name="settings_sens_help">सख़्त सस्पेंशन या ढीले फ़ोन होल्डर के लिए कम चुनें, नरम सवारी के लिए ज़्यादा।</string>
+    <string name="settings_show_tip">फ़ोन लगाने का टिप फिर से दिखाएं</string>
+    <string name="settings_tip_toast">अगली ड्राइव पर दिखेगा।</string>
+    <string name="settings_section_uploads">अपलोड</string>
+    <string name="settings_wifi_only">रिपोर्ट सिर्फ़ Wi-Fi पर भेजें</string>
+    <string name="settings_send_now">अभी भेजें</string>
+    <string name="settings_send_toast">कनेक्शन मिलते ही भेज देंगे।</string>
+    <string name="settings_queue_empty">सब कुछ भेजा जा चुका है।</string>
+    <plurals name="settings_queue_waiting">
+        <item quantity="one">%d रिपोर्ट इस फ़ोन पर रुकी है।</item>
+        <item quantity="other">%d रिपोर्ट इस फ़ोन पर रुकी हैं।</item>
+    </plurals>
+    <string name="settings_section_server">सर्वर</string>
+    <string name="settings_server_help">रिपोर्ट यहीं भेजी जाती हैं। इसे बदलने पर आप साइन आउट हो जाएंगे, क्योंकि अकाउंट सर्वर से जुड़े होते हैं।</string>
+    <string name="settings_change">बदलें</string>
+    <string name="settings_test">कनेक्शन जांचें</string>
+    <string name="settings_section_account">अकाउंट</string>
+    <string name="settings_account_guest">इस फ़ोन पर गेस्ट के तौर पर ड्राइव कर रहे हैं</string>
+    <string name="settings_account_signed_in">%1$s से साइन इन है</string>
+    <string name="settings_about">RoadGuard %1$s\nपहचान पूरी तरह आपके फ़ोन पर होती है। कुछ भी रिकॉर्ड या स्ट्रीम नहीं होता; हर रिपोर्ट के साथ सिर्फ़ एक फ़ोटो भेजी जाती है, ताकि शहर ख़तरा देख सके।</string>
+
+    <!-- Server dialog -->
+    <string name="server_title">RoadGuard सर्वर</string>
+    <string name="server_hint">सर्वर का पता</string>
+    <string name="server_helper">बैकएंड शुरू होने पर टर्मिनल में दिखता है, जैसे http://192.168.1.20:5000/</string>
+    <string name="server_save">सेव करें और जांचें</string>
+    <string name="server_connected">%1$s से कनेक्ट हो गया</string>
+
+    <!-- Network errors -->
+    <string name="error_sign_in_again">कृपया फिर से साइन इन करें।</string>
+    <string name="error_forbidden">आपको इसकी अनुमति नहीं है।</string>
+    <string name="error_not_found">यह चीज़ अब मौजूद नहीं है।</string>
+    <string name="error_server">RoadGuard सर्वर में दिक्कत आई। थोड़ी देर में फिर से कोशिश करें।</string>
+    <string name="error_http">कुछ गड़बड़ हो गई (%1$d)।</string>
+    <string name="error_offline">अभी RoadGuard से कनेक्ट नहीं हो पा रहा। अपना मोबाइल डेटा या Wi-Fi जांचें और फिर से कोशिश करें।</string>
+    <string name="error_bad_server_url">सेटिंग्स में दिया गया सर्वर का पता सही नहीं है।</string>
+    <string name="error_generic">कुछ गड़बड़ हो गई।</string>
+
+    <!-- Usability pass, Oct 2026 -->
+    <string name="drive_end_short">ख़त्म</string>
+    <string name="drive_end_title">यह ड्राइव ख़त्म करें?</string>
+    <string name="drive_keep_driving">ड्राइव जारी रखें</string>
+    <string name="drive_summary_km">आपने %1$s किमी सड़क स्कैन की।</string>
+    <string name="drive_summary_none">इस बार कोई गड्ढा नहीं मिला। सड़क जांचने के लिए धन्यवाद।</string>
+    <string name="drive_detail_watching">सड़क पर नज़र रखे हुए है</string>
+    <string name="drive_status_location_off">फ़ोन की लोकेशन बंद है</string>
+    <string name="drive_detail_location_off">इसे चालू करने के लिए यहां टैप करें</string>
+    <string name="drive_error_camera_friendly">कैमरा शुरू नहीं हो पाया। दूसरे कैमरा ऐप बंद करें और यहां टैप करें।</string>
+    <string name="location_blocked_hint">RoadGuard के लिए लोकेशन बंद है। अनुमतियां, फिर लोकेशन पर टैप करें और अनुमति दें चुनें।</string>
+    <string name="login_offline_started">अभी कनेक्शन नहीं है, फिर भी आप ड्राइव कर सकते हैं। रिपोर्ट आपके फ़ोन में सेव होंगी और ऑनलाइन होते ही भेज दी जाएंगी।</string>
+    <string name="tap_to_retry">फिर से कोशिश करने के लिए टैप करें</string>
+    <string name="profile_guest_name">मेहमान ड्राइवर</string>
+    <plurals name="drive_summary_reports">
+        <item quantity="one">%d गड्ढा रिपोर्ट हुआ। यह शहर तक पहुंच रहा है।</item>
+        <item quantity="other">%d गड्ढे रिपोर्ट हुए। ये शहर तक पहुंच रहे हैं।</item>
+    </plurals>
+</resources>

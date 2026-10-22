@@ -1,0 +1,14 @@
+{
+  "model": "best.tflite",
+  "detectThreshold": 0.1,
+  "reportThreshold": 0.2,
+  "singleHitThreshold": 0.3,
+  "calibratedOn": "RDD2020 India validation split",
+  "validation": {
+    "AP50": 0.4065,
+    "bestF1": {
+      "f1": 0.464,
+      "threshold": 0.1
+    }
+  }
+}

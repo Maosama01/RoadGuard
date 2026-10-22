@@ -1,0 +1,14 @@
+{
+  "model": "roadguard_v3_e5.tflite",
+  "detectThreshold": 0.16,
+  "reportThreshold": 0.26,
+  "singleHitThreshold": 0.36,
+  "calibratedOn": "RDD2020 India validation split",
+  "validation": {
+    "AP50": 0.155,
+    "bestF1": {
+      "f1": 0.238,
+      "threshold": 0.16
+    }
+  }
+}

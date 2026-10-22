@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RoadGuard Control</title>
+  <meta name="description" content="RoadGuard control room for city road teams: every pothole drivers find, ranked by what to fix first.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231C2026'/%3E%3Crect x='14' y='4' width='4' height='7' rx='1' fill='%23F2C230'/%3E%3Crect x='14' y='14' width='4' height='7' rx='1' fill='%23F2C230'/%3E%3Crect x='14' y='24' width='4' height='5' rx='1' fill='%23F2C230'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Sign in -->
+  <main id="login" class="login" hidden>
+    <div class="login-road" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+    <form id="loginForm" class="login-card" novalidate>
+      <div class="brand brand-lg"><span class="brand-mark" aria-hidden="true"></span>RoadGuard <em>Control</em></div>
+      <p class="login-lede">The potholes your city's drivers find, ranked by what to fix first.</p>
+      <label class="field">
+        <span>Work email</span>
+        <input id="loginEmail" type="email" autocomplete="username" required>
+      </label>
+      <label class="field">
+        <span>Password</span>
+        <input id="loginPassword" type="password" autocomplete="current-password" required>
+      </label>
+      <p id="loginError" class="form-error" role="alert"></p>
+      <button class="btn btn-primary btn-block" type="submit">Sign in</button>
+      <p class="login-hint">For city road teams. Drivers report hazards from the RoadGuard app.</p>
+    </form>
+  </main>
+
+  <!-- App shell -->
+  <div id="shell" class="shell" hidden>
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span>RoadGuard <em>Control</em></div>
+      <nav class="tabs" role="tablist" aria-label="Views">
+        <button class="tab is-active" role="tab" data-view="queue" aria-selected="true">Fix queue</button>
+        <button class="tab" role="tab" data-view="insights" aria-selected="false">Insights</button>
+        <button class="tab" role="tab" data-view="contractors" aria-selected="false">Contractors</button>
+        <button class="tab" role="tab" data-view="team" aria-selected="false" id="teamTab" hidden>Team</button>
+      </nav>
+      <dl class="pulse" id="pulse" aria-live="polite"></dl>
+      <div class="me">
+        <span id="meName" class="me-name"></span>
+        <button id="exportBtn" class="btn btn-quiet" type="button">Export CSV</button>
+        <button id="logoutBtn" class="btn btn-quiet" type="button">Sign out</button>
+      </div>
+    </header>
+
+    <!-- Fix queue -->
+    <section class="view view-queue" id="view-queue">
+      <aside class="queue" aria-label="Hazard queue">
+        <div class="filters">
+          <div class="search">
+            <input id="search" type="search" placeholder="Search a road or #id" aria-label="Search hazards">
+          </div>
+          <div class="seg" role="radiogroup" aria-label="Status" id="statusSeg">
+            <button data-status="open" class="is-on" role="radio" aria-checked="true">Open</button>
+            <button data-status="reported" role="radio" aria-checked="false">New</button>
+            <button data-status="verified" role="radio" aria-checked="false">Verified</button>
+            <button data-status="assigned,in_progress" role="radio" aria-checked="false">With crews</button>
+            <button data-status="overdue" role="radio" aria-checked="false">Overdue</button>
+            <button data-status="resolved" role="radio" aria-checked="false">Fixed</button>
+            <button data-status="all" role="radio" aria-checked="false">All</button>
+          </div>
+          <div class="filter-row">
+            <div class="sev-toggles" id="sevToggles" aria-label="Severity">
+              <button data-sev="CRITICAL" class="sev-t sev-critical" aria-pressed="true">Critical</button>
+              <button data-sev="HIGH" class="sev-t sev-high" aria-pressed="true">High</button>
+              <button data-sev="MEDIUM" class="sev-t sev-medium" aria-pressed="true">Medium</button>
+              <button data-sev="LOW" class="sev-t sev-low" aria-pressed="true">Low</button>
+            </div>
+          </div>
+          <div class="filter-row filter-row-2">
+            <select id="typeSel" aria-label="Hazard type">
+              <option value="">All hazards</option>
+              <option value="pothole">Potholes</option>
+              <option value="drain_hole">Open drains</option>
+              <option value="sewer_cover">Sewer covers</option>
+              <option value="crack">Cracked surfaces</option>
+              <option value="bump">Rough patches</option>
+            </select>
+            <select id="sortSel" aria-label="Sort by">
+              <option value="priority">Fix first</option>
+              <option value="recent">Latest sighting</option>
+              <option value="reports">Most drivers</option>
+              <option value="oldest">Waiting longest</option>
+              <option value="severity">Worst first</option>
+            </select>
+            <label class="check"><input id="inViewChk" type="checkbox"> On map only</label>
+          </div>
+        </div>
+        <div class="queue-meta" id="queueMeta"></div>
+        <ol class="queue-list" id="queueList"></ol>
+      </aside>
+
+      <div class="map-wrap">
+        <div id="map" class="map" aria-label="Hazard map"></div>
+        <div class="map-tools">
+          <button id="coverageBtn" class="chip" aria-pressed="false" type="button">Coverage</button>
+          <button id="heatBtn" class="chip" aria-pressed="false" type="button">Heat</button>
+          <button id="fitBtn" class="chip" type="button">Fit all</button>
+        </div>
+        <div class="legend" aria-hidden="true">
+          <span><i class="dot sev-bg-critical"></i>Critical</span>
+          <span><i class="dot sev-bg-high"></i>High</span>
+          <span><i class="dot sev-bg-medium"></i>Medium</span>
+          <span><i class="dot sev-bg-low"></i>Low</span>
+          <span><i class="dot dot-done"></i>Fixed</span>
+          <span id="coverageLegend" hidden><i class="sq-cov"></i>Scanned in the last 30 days</span>
+          <span class="legend-note">Bigger circle, more drivers</span>
+        </div>
+      </div>
+
+      <aside class="detail" id="detail" aria-label="Hazard detail" hidden></aside>
+    </section>
+
+    <!-- Insights -->
+    <section class="view view-insights" id="view-insights" hidden>
+      <div class="insights" id="insights"></div>
+    </section>
+
+    <!-- Contractors -->
+    <section class="view view-contractors" id="view-contractors" hidden>
+      <div class="contractors" id="contractors"></div>
+    </section>
+
+    <!-- Team -->
+    <section class="view view-team" id="view-team" hidden>
+      <div class="team" id="team"></div>
+    </section>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="/vendor/leaflet/leaflet.js"></script>
+  <script src="/vendor/leaflet-heat/leaflet-heat.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

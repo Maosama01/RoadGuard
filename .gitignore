@@ -1,0 +1,36 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+.kotlin
+/.backup-original-*
+/ml/datasets/
+/ml/work/
+/ml/.venv/
+
+# Build output and caches anywhere in the tree
+build/
+__pycache__/
+*.log
+
+# Secrets and machine-specific settings (never commit)
+.env
+backend/.env
+backend/data/
+
+# Pretrained Ultralytics base weights: downloaded on demand, not ours to redistribute
+/ml/weights/yolo11*.pt
+
+# Local helper
+/push_to_github.sh

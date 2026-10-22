@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Road vocabulary: asphalt, concrete, lane-marking yellow. -->
+    <color name="asphalt">#1C2026</color>
+    <color name="asphalt_2">#2A3039</color>
+    <color name="asphalt_3">#3A424D</color>
+    <color name="lane">#F2C230</color>
+    <color name="lane_ink">#1C2026</color>
+    <color name="on_asphalt">#FFFFFF</color>
+    <color name="on_asphalt_muted">#A9B0BA</color>
+
+    <!-- Surfaces (light). Overridden in values-night. -->
+    <color name="concrete">#EEF0EC</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_2">#F4F5F2</color>
+    <color name="ink">#20242B</color>
+    <color name="muted">#5F6670</color>
+    <color name="line">#D9DDD6</color>
+    <color name="brand_primary">#1C2026</color>
+    <color name="on_brand_primary">#FFFFFF</color>
+
+    <!-- Severity ramp, shared with the city dashboard. -->
+    <color name="sev_low">#3E9C73</color>
+    <color name="sev_medium">#E0A526</color>
+    <color name="sev_high">#E8742A</color>
+    <color name="sev_critical">#C62E2E</color>
+    <color name="done">#8A9099</color>
+    <color name="info">#2F6FE4</color>
+
+    <color name="scrim">#B31C2026</color>
+</resources>
