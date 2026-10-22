@@ -11,14 +11,17 @@ const { publicPage } = require('./publicPage');
 
 function createApp(db, { logging = true } = {}) {
   const app = express();
+  // Browser-side HTTPS rules (HSTS, upgrading http requests) only when the server's public
+  // address is https. On http over the LAN they would leave the dashboard blank.
+  const httpsOnly = config.publicBaseUrl.startsWith('https://');
   app.set('trust proxy', 1);
 
   app.use(
     helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' },
-      strictTransportSecurity: config.appUrl.startsWith('https://'),
-      crossOriginOpenerPolicy: config.appUrl.startsWith('https://') ? { policy: 'same-origin' } : false,
-      originAgentCluster: config.appUrl.startsWith('https://'),
+      strictTransportSecurity: httpsOnly,
+      crossOriginOpenerPolicy: httpsOnly ? { policy: 'same-origin' } : false,
+      originAgentCluster: httpsOnly,
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
@@ -27,10 +30,7 @@ function createApp(db, { logging = true } = {}) {
           fontSrc: ["'self'"],
           scriptSrc: ["'self'"],
           connectSrc: ["'self'"],
-          // helmet adds upgrade-insecure-requests by default. On plain http over the LAN
-          // (http://192.168.x.x:5050) that makes the browser fetch app.js and styles.css over
-          // https, which fails and leaves a blank page. Keep it only when served over HTTPS.
-          upgradeInsecureRequests: config.appUrl.startsWith('https://') ? [] : null,
+          upgradeInsecureRequests: httpsOnly ? [] : null,
         },
       },
     })

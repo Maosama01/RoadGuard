@@ -1,5 +1,31 @@
 # Deploying the RoadGuard backend with HTTPS
 
+There are two supported setups:
+
+* **From a Mac, free (current setup).** `ops/go_live_mac.sh` runs the server as a background service and
+  publishes it with Tailscale Funnel at a stable `https://<mac-name>.<tailnet>.ts.net/` address with a real
+  certificate. Good for testing and a small pilot. The catch: when the Mac sleeps or is off, the server is
+  offline (reports wait on the phones and send later). See "From a Mac" below.
+* **A small Linux server (VPS), always on.** Docker plus Caddy, described in the rest of this file. Moving
+  later is easy: copy `backend/data-live/` to the server's data volume and point the app at the new address.
+  Students can run this free for 12 months on an Azure for Students B1s VM (no credit card; see the end).
+
+## From a Mac with Tailscale Funnel
+
+1. Install Tailscale from https://tailscale.com/download/mac, open it and sign in (free Personal plan).
+2. Run `bash ops/go_live_mac.sh`. The first time, it asks for your dashboard email, prints a generated
+   password, and may print a link to switch Funnel on for your Tailscale account (approve, run it again).
+3. It writes the public address into `gradle.properties` as `roadguard.serverUrl`, so the next app build
+   talks to it. Build with `bash ops/build_release.sh`.
+
+`bash ops/go_live_mac.sh status` checks it, `... stop` takes it offline. The live database is
+`backend/data-live/` (separate from the demo data in `backend/data/`); back that folder up.
+
+---
+
+The rest of this file covers the VPS setup.
+
+
 The backend is one Node.js process with an SQLite file and a folder of photos. The simplest
 production setup is a small Linux server (a VPS) running two containers:
 
@@ -132,3 +158,18 @@ not Caddy or `docker-compose.yml`.
   add a volume to the service.
 * Run a single instance only. SQLite is a file on one disk, so the service cannot scale to several
   replicas. When you outgrow one server, move to Postgres + PostGIS.
+
+## Azure for Students (free VPS for a year)
+
+Full-time students get USD 100 credit and 750 hours a month of a B1s Linux VM for 12 months, without a
+credit card, by signing up with their college email at https://azure.microsoft.com/free/students/.
+
+1. Create an Ubuntu 24.04 VM, size **B1s**, region **Central India**, with a public IP. Open inbound ports 80
+   and 443 (and 22 for SSH) in its network security group.
+2. Use the free address `<public-ip-with-dashes>.sslip.io` as `DOMAIN` (for example `20-204-10-7.sslip.io`),
+   or your own domain.
+3. Follow steps 2 to 6 above. To keep existing data, copy the Mac's `backend/data-live/` into the server's
+   data volume before the first start.
+
+The public IP is billed against the credit (a few dollars a month); stop and delete the VM when the
+credit or student status ends, or move to a paid plan.

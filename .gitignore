@@ -28,6 +28,11 @@ __pycache__/
 .env
 backend/.env
 backend/data/
+backend/data-live/
+
+# Release signing key and built APKs: never commit
+/signing/
+/release/
 
 # Pretrained Ultralytics base weights: downloaded on demand, not ours to redistribute
 /ml/weights/yolo11*.pt

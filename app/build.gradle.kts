@@ -1,5 +1,6 @@
 import java.net.Inet4Address
 import java.net.NetworkInterface
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
@@ -7,10 +8,21 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
+/** The public RoadGuard server (gradle.properties, written by ops/go_live_mac.sh), if there is one. */
+val publicServerUrl: String? = (findProperty("roadguard.serverUrl") as String?)?.trim()?.takeIf { it.startsWith("http") }
+
+/** Set roadguard.useLanServer=true in gradle.properties to point debug builds at this computer's Wi-Fi address instead. */
+val useLanServer: Boolean = (findProperty("roadguard.useLanServer") as String?)?.trim() == "true"
+
+/** Release signing key, kept out of git in signing/ (see ops/build_release.sh). */
+val signingProps = Properties().apply {
+    val f = rootProject.file("signing/keystore.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+
 /**
- * Debug builds talk to the backend running on this computer. A real phone can't use the
- * emulator address (10.0.2.2), so use this computer's Wi-Fi address and the port from
- * backend/.env. Release builds keep DEFAULT_SERVER_URL from defaultConfig.
+ * This computer's Wi-Fi address and the port from backend/.env, for debug builds that talk to a
+ * backend on the same network (roadguard.useLanServer=true, or when there's no public server).
  */
 fun devServerUrl(): String {
     val port = rootProject.file("backend/.env").takeIf { it.exists() }?.readLines()
@@ -37,14 +49,14 @@ android {
         applicationId = "com.roadguard.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "2.0"
+        versionCode = 3
+        versionName = "2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Where a release build looks for the backend on first launch (change it in Settings).
-        // Debug builds override this with this computer's Wi-Fi address; see devServerUrl().
-        buildConfigField("String", "DEFAULT_SERVER_URL", "\"http://10.0.2.2:5000/\"")
+        // Where the app looks for the backend on first launch (it can be changed in Settings):
+        // the public server from gradle.properties, else the emulator's view of this computer.
+        buildConfigField("String", "DEFAULT_SERVER_URL", "\"${publicServerUrl ?: "http://10.0.2.2:5000/"}\"")
     }
 
     buildFeatures {
@@ -57,11 +69,25 @@ android {
         noCompress.add("tflite")
     }
 
+    signingConfigs {
+        create("release") {
+            if (!signingProps.isEmpty()) {
+                storeFile = rootProject.file(signingProps.getProperty("storeFile"))
+                storePassword = signingProps.getProperty("storePassword")
+                keyAlias = signingProps.getProperty("keyAlias")
+                keyPassword = signingProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         debug {
-            buildConfigField("String", "DEFAULT_SERVER_URL", "\"${devServerUrl()}\"")
+            // Field testing needs the public server; LAN only when asked for.
+            val url = if (publicServerUrl != null && !useLanServer) publicServerUrl else devServerUrl()
+            buildConfigField("String", "DEFAULT_SERVER_URL", "\"$url\"")
         }
         release {
+            if (!signingProps.isEmpty()) signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
