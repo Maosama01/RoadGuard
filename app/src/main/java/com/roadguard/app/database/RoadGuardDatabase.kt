@@ -62,9 +62,10 @@ abstract class RoadGuardDatabase : RoomDatabase() {
                 )
                     .addMigrations(MIGRATION_2_3)
                     // Version 1 was never usable (Room's processor wasn't configured), so
-                    // there is nothing to migrate from. Only versions without a migration
-                    // above fall back to a fresh database.
-                    .fallbackToDestructiveMigration(true)
+                    // there is nothing to migrate from. Any later version MUST get a real
+                    // migration: wiping would delete reports that haven't been sent yet, so a
+                    // missing one crashes in testing instead of losing data in the field.
+                    .fallbackToDestructiveMigrationFrom(true, 1)
                     .build()
                     .also { instance = it }
             }

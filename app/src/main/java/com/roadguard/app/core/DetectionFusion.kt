@@ -36,7 +36,31 @@ class DetectionFusion(private val config: Config = Config()) {
         val dedupeRadiusMeters: Double = 15.0,
         /** ...within this time. */
         val dedupeWindowMs: Long = 60_000,
-    )
+        /**
+         * Below this speed nothing is reported: a parked or stationary phone pointed at the
+         * ground (or tested on a desk) is not a drive, and GPS speed is noise at a standstill.
+         */
+        val minReportSpeedKmh: Float = 5f,
+        /** A GPS fix older than this when the hazard was seen can't say where it was. */
+        val maxFixAgeMs: Long = 4_000,
+        /**
+         * The camera sees a hazard about this long before the wheels reach it. Visual-only reports
+         * are moved forward along the road by this much; jolt-confirmed ones go to the jolt itself.
+         */
+        val visualLeadMs: Long = 1_500,
+        /** Never move a report further than this from where the car was. */
+        val maxLeadMeters: Double = 40.0,
+    ) {
+        companion object {
+            /** The settings the app actually drives with, for one model's calibration. */
+            fun forModel(singleHitConfidence: Float, reportConfidence: Float, requireShock: Boolean) = Config(
+                mergeWindowMs = 2_500,
+                requireShock = requireShock,
+                singleHitConfidence = singleHitConfidence,
+                visualOnlyMinConfidence = reportConfidence,
+            )
+        }
+    }
 
     data class Fix(
         val latitude: Double,
@@ -59,7 +83,7 @@ class DetectionFusion(private val config: Config = Config()) {
         val candidateId: Long,
     )
 
-    enum class Outcome { NONE, REPORTED, DROPPED_WEAK, DROPPED_NO_GPS, DROPPED_DUPLICATE }
+    enum class Outcome { NONE, REPORTED, DROPPED_WEAK, DROPPED_NO_GPS, DROPPED_DUPLICATE, DROPPED_NOT_MOVING }
 
     private class Candidate(
         val id: Long,
@@ -140,16 +164,16 @@ class DetectionFusion(private val config: Config = Config()) {
     private fun resolve(now: Long, force: Boolean): Confirmed? {
         val c = candidate ?: return null
         val qualified = c.hits >= config.minHits || c.bestConfidence >= config.singleHitConfidence
-        val shock = shocks
+        val strongest = shocks
             .filter { it.at >= c.firstSeen - config.shockLookbackMs && it.at <= now }
-            .maxOfOrNull { it.magnitude } ?: 0f
+            .maxByOrNull { it.magnitude }
         val waitedEnough = now - c.lastSeen >= config.shockWaitMs
 
         if (!qualified) {
             if (force || now - c.lastSeen > config.mergeWindowMs) finish(Outcome.DROPPED_WEAK, now)
             return null
         }
-        if (shock > 0f) return emit(c, shock, now)
+        if (strongest != null) return emit(c, strongest.magnitude, strongest.at, now)
         if (!waitedEnough && !force) return null
 
         // Passed it without feeling anything.
@@ -158,15 +182,36 @@ class DetectionFusion(private val config: Config = Config()) {
             finish(Outcome.DROPPED_WEAK, now)
             return null
         }
-        return emit(c, 0f, now)
+        return emit(c, 0f, null, now)
     }
 
-    private fun emit(c: Candidate, shock: Float, now: Long): Confirmed? {
-        val fix = c.bestFix
-        if (fix == null || fix.accuracyMeters > config.maxGpsAccuracyMeters) {
+    /**
+     * Where the hazard is: the GPS fix moves forward along the car's heading to the moment the
+     * wheels reached it (the jolt), or by [Config.visualLeadMs] past the sighting when nothing
+     * was felt. Without this, camera reports land 10 to 30 m short of the pothole.
+     */
+    private fun positionAt(fix: Fix, atMs: Long): Fix {
+        val bearing = fix.bearing ?: return fix
+        val leadMs = (atMs - fix.timestamp).coerceIn(0L, 5_000L)
+        val meters = (fix.speedKmh / 3.6 * leadMs / 1000.0).coerceAtMost(config.maxLeadMeters)
+        if (meters < 0.5) return fix
+        val (lat, lng) = GeoUtils.offset(fix.latitude, fix.longitude, bearing.toDouble(), meters)
+        return fix.copy(latitude = lat, longitude = lng)
+    }
+
+    private fun emit(c: Candidate, shock: Float, shockAt: Long?, now: Long): Confirmed? {
+        val seenWith = c.bestFix
+        if (seenWith == null || seenWith.accuracyMeters > config.maxGpsAccuracyMeters ||
+            c.bestAt - seenWith.timestamp > config.maxFixAgeMs
+        ) {
             finish(Outcome.DROPPED_NO_GPS, now)
             return null
         }
+        if (seenWith.speedKmh < config.minReportSpeedKmh) {
+            finish(Outcome.DROPPED_NOT_MOVING, now)
+            return null
+        }
+        val fix = positionAt(seenWith, shockAt ?: (c.bestAt + config.visualLeadMs))
         while (recent.isNotEmpty() && c.bestAt - recent.first().detectedAt > config.dedupeWindowMs) recent.removeFirst()
         val duplicate = recent.any {
             it.kind == c.kind && GeoUtils.distanceMeters(

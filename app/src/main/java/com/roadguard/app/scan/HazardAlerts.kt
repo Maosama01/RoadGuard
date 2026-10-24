@@ -65,6 +65,13 @@ class HazardAlerts(
         }
     }
 
+    /**
+     * Set false when the phone has no working accelerometer: then "drove over it and felt
+     * nothing" means nothing, and no clean-pass votes are sent.
+     */
+    @Volatile
+    var canFeelJolts: Boolean = true
+
     /** A jolt the car felt (wall-clock ms). A jolt at a known hazard means it's still there. */
     fun onShock(timestamp: Long) = engine.onShock(timestamp)
 
@@ -74,7 +81,8 @@ class HazardAlerts(
             announce(it)
             onAlert(it)
         }
-        for (id in engine.checkCleanPasses(d.latitude, d.longitude, now)) {
+        val passes = engine.checkCleanPasses(d.latitude, d.longitude, now, d.speedKmh)
+        if (canFeelJolts) for (id in passes) {
             scope.launch { apiCall { vote(id, VoteRequest("pass")) } }
         }
         maybeFetch(d)
@@ -114,6 +122,7 @@ class HazardAlerts(
                         longitude = it.longitude,
                         severityLevel = it.severityLevel ?: "LOW",
                         reportCount = maxOf(it.uniqueReporters, 1),
+                        roadName = it.roadName?.takeIf { name -> name.isNotBlank() },
                     )
                 })
                 onHazardsChanged()
@@ -147,10 +156,41 @@ class HazardAlerts(
     private fun announce(alert: AlertEngine.Alert) {
         vibrate(longArrayOf(0, 120, 90, 120))
         if (Settings.voiceAlerts && ttsReady) {
-            val meters = ((alert.distanceMeters / 10).toInt() * 10).coerceAtLeast(10)
-            val words = speech
-            val text = words.getString(R.string.alert_ahead_speech, Ui.kindName(words, alert.hazard.kind), meters)
-            tts?.speak(text, TextToSpeech.QUEUE_FLUSH, null, "alert-${alert.hazard.id}")
+            tts?.speak(spokenWarning(speech, alert), TextToSpeech.QUEUE_FLUSH, null, "alert-${alert.hazard.id}")
+        }
+    }
+
+    companion object {
+        /** Distance rounded to 10 m: precise enough to brake, easy to hear. */
+        fun roundedMeters(alert: AlertEngine.Alert): Int = ((alert.distanceMeters / 10).toInt() * 10).coerceAtLeast(10)
+
+        /** "Severe pothole", "Open drain": how bad, then what. Medium needs no adjective. */
+        fun whatAhead(words: Context, hazard: AlertEngine.KnownHazard): String {
+            val kind = Ui.kindName(words, hazard.kind)
+            val adjective = words.getString(
+                when (hazard.severityLevel) {
+                    "CRITICAL" -> R.string.speech_sev_critical
+                    "HIGH" -> R.string.speech_sev_high
+                    "LOW" -> R.string.speech_sev_low
+                    else -> R.string.speech_sev_medium
+                }
+            )
+            if (adjective.isBlank()) return kind
+            val tag = words.getString(R.string.speech_language_tag)
+            // English: "Severe pothole"; other languages keep the noun as written.
+            return if (tag == "en") "$adjective ${kind.lowercase(java.util.Locale.ENGLISH)}" else "$adjective $kind"
+        }
+
+        /**
+         * Everything a driver who can't look at the phone needs, in one breath:
+         * "Severe pothole ahead, 120 metres. On Rajpur Road. Reported by 4 drivers."
+         */
+        fun spokenWarning(words: Context, alert: AlertEngine.Alert): String {
+            val h = alert.hazard
+            val parts = mutableListOf(words.getString(R.string.alert_ahead_speech, whatAhead(words, h), roundedMeters(alert)) + ".")
+            h.roadName?.let { parts += words.getString(R.string.alert_speech_road, it) }
+            if (h.reportCount > 1) parts += words.resources.getQuantityString(R.plurals.alert_speech_drivers, h.reportCount, h.reportCount)
+            return parts.joinToString(" ")
         }
     }
 

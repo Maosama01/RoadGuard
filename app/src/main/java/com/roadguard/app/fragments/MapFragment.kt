@@ -26,12 +26,14 @@ import com.roadguard.app.ui.visible
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.osmdroid.events.DelayedMapListener
+import org.osmdroid.events.MapEventsReceiver
 import org.osmdroid.events.MapListener
 import org.osmdroid.events.ScrollEvent
 import org.osmdroid.events.ZoomEvent
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.CustomZoomButtonsController
+import org.osmdroid.views.overlay.MapEventsOverlay
 import org.osmdroid.views.overlay.Marker
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
@@ -52,6 +54,8 @@ class MapFragment : Fragment(), Refreshable {
         if (result.values.any { it }) {
             enableMyLocation()
             centerOnMe()
+        } else if (!shouldShowRequestPermissionRationale(android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+            context?.let { com.roadguard.app.ui.Ui.openAppSettings(it) }
         }
     }
 
@@ -95,6 +99,18 @@ class MapFragment : Fragment(), Refreshable {
         binding.btnCardDetails.setOnClickListener {
             selected?.let { HazardDetailActivity.start(requireContext(), it.id) }
         }
+
+        // Tapping empty map closes the hazard card (it used to stay until the next reload).
+        // Index 0: markers are drawn above it and get their taps first.
+        map.overlays.add(0, MapEventsOverlay(object : MapEventsReceiver {
+            override fun singleTapConfirmedHelper(p: GeoPoint?): Boolean {
+                _binding?.cardHazard?.visible(false)
+                selected = null
+                return false
+            }
+
+            override fun longPressHelper(p: GeoPoint?): Boolean = false
+        }))
 
         // The first layout pass gives the map its real bounds.
         map.post { load() }

@@ -12,6 +12,17 @@ const { boundingBox, distanceMeters } = require('./geo');
 
 const { DAY } = H;
 const S = config.sensor;
+const TZ_MS = config.timeZoneOffsetMinutes * 60000;
+/** Calendar day in the city's time zone, so "different days" means what a driver means. */
+const localDay = (t) => Math.floor((t + TZ_MS) / DAY);
+
+/** Independent evidence in a cluster: different drivers, and different days (any driver). */
+function evidence(cluster) {
+  const users = new Set(cluster.map((h) => h.user_id));
+  const days = new Set(cluster.map((h) => localDay(h.detected_at)));
+  return { users: users.size, days: days.size };
+}
+const isConfirmed = (e) => e.users >= S.promoteUsers || e.days >= S.promoteDays;
 
 /** 0..100 from how hard the jolt was and how fast the car was going. */
 function sensorSeverity(shock, speed) {
@@ -58,6 +69,7 @@ function promote(db, cluster, now) {
   const lng = cluster.reduce((a, h) => a + h.lng, 0) / cluster.length;
   const first = cluster.reduce((a, h) => (h.detected_at < a.detected_at ? h : a));
   const users = [...new Set(cluster.map((h) => h.user_id))];
+  const ev = evidence(cluster);
   const info = db
     .prepare(
       `INSERT INTO hazards (type, lat, lng, road_name, status, discovered_by, first_reported_at, last_reported_at, updated_at)
@@ -67,7 +79,10 @@ function promote(db, cluster, now) {
   let hazard = db.prepare('SELECT * FROM hazards WHERE id = ?').get(info.lastInsertRowid);
   H.addEvent(db, hazard.id, null, 'created', {
     to: 'reported',
-    note: `Felt by ${users.length} different drivers in pocket mode.`,
+    note:
+      ev.users >= S.promoteUsers
+        ? `Felt by ${users.length} different drivers in pocket mode.`
+        : `Felt in pocket mode on ${ev.days} different days${users.length > 1 ? ` by ${users.length} drivers` : ''}.`,
     at: now,
   });
   for (const hit of cluster) {
@@ -118,7 +133,7 @@ function ingestSensorHits(db, user, hits, now = Date.now()) {
         speed: hit.speed || 0,
         heading: hit.heading ?? null,
         shock: hit.shock || 0,
-        roadName: hit.roadName || null,
+        roadName: H.cleanRoadName(hit.roadName),
         hazardId: null,
         detectedAt,
         now,
@@ -161,7 +176,7 @@ function ingestSensorHits(db, user, hits, now = Date.now()) {
         )
         .all(now - S.windowDays * DAY, box.minLat, box.maxLat, box.minLng, box.maxLng)
         .filter((h) => distanceMeters(hit.latitude, hit.longitude, h.lat, h.lng) <= S.radiusMeters);
-      if (new Set(cluster.map((h) => h.user_id)).size >= S.promoteUsers) {
+      if (isConfirmed(evidence(cluster))) {
         const { users } = promote(db, cluster, now);
         out.promoted++;
         if (users.includes(user.id)) out.pointsAwarded += config.points.sensorPromote;
@@ -173,4 +188,47 @@ function ingestSensorHits(db, user, hits, now = Date.now()) {
   return out;
 }
 
-module.exports = { sensorSeverity, ingestSensorHits };
+/**
+ * Jolts still waiting for more evidence, grouped by spot, for the dashboard. Nothing here is a
+ * hazard yet; it shows the city (and the pilot team) that pocket mode is working.
+ */
+function pendingClusters(db, { days = S.windowDays, now = Date.now() } = {}) {
+  const hits = db
+    .prepare('SELECT * FROM sensor_hits WHERE hazard_id IS NULL AND detected_at >= ? ORDER BY detected_at ASC')
+    .all(now - days * DAY);
+  const clusters = [];
+  for (const h of hits) {
+    let home = null;
+    for (const c of clusters) {
+      if (distanceMeters(c.lat, c.lng, h.lat, h.lng) <= S.radiusMeters) { home = c; break; }
+    }
+    if (!home) {
+      home = { lat: h.lat, lng: h.lng, hits: [] };
+      clusters.push(home);
+    }
+    home.hits.push(h);
+    home.lat = home.hits.reduce((a, x) => a + x.lat, 0) / home.hits.length;
+    home.lng = home.hits.reduce((a, x) => a + x.lng, 0) / home.hits.length;
+  }
+  return clusters
+    .map((c) => {
+      const e = evidence(c.hits);
+      const roads = c.hits.map((x) => x.road_name).filter(Boolean);
+      return {
+        latitude: Math.round(c.lat * 1e6) / 1e6,
+        longitude: Math.round(c.lng * 1e6) / 1e6,
+        jolts: c.hits.length,
+        drivers: e.users,
+        days: e.days,
+        maxShock: Math.round(Math.max(...c.hits.map((x) => x.shock || 0)) * 10) / 10,
+        avgSpeed: Math.round(c.hits.reduce((a, x) => a + (x.speed || 0), 0) / c.hits.length),
+        roadName: roads[0] || null,
+        firstAt: c.hits[0].detected_at,
+        lastAt: c.hits[c.hits.length - 1].detected_at,
+        needs: { drivers: S.promoteUsers, days: S.promoteDays },
+      };
+    })
+    .sort((a, b) => b.lastAt - a.lastAt);
+}
+
+module.exports = { sensorSeverity, ingestSensorHits, pendingClusters };

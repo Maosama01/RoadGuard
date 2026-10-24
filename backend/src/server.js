@@ -9,6 +9,9 @@ const { computePriority, OPEN_STATUSES } = require('./hazards');
 const { escalate } = require('./accountability');
 
 const db = open();
+const { cleanStoredRoadNames } = require('./hazards');
+const renamed = cleanStoredRoadNames(db);
+if (renamed) console.log(`Cleared ${renamed} unusable road names (Plus Codes, "Unnamed Road").`);
 
 if (config.admin.email && config.admin.password) {
   const r = ensureStaff(db, { ...config.admin, role: 'admin' });

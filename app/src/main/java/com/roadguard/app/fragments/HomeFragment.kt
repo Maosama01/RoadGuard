@@ -48,13 +48,22 @@ class HomeFragment : Fragment(), Refreshable {
     private val nearbyAdapter = HazardRowAdapter { HazardDetailActivity.start(requireContext(), it.id) }
 
     private val locationPermission = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        val ctx = context ?: return@registerForActivityResult
+        if (!LocationHelper.hasPermission(ctx) && locationBlocked()) Ui.openAppSettings(ctx)
         loadNearby()
     }
+
+    /** Denied with "Don't ask again" (Android won't show the request any more). */
+    private fun locationBlocked() = !shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)
 
     /** Location (precise + approximate together) and, on Android 13+, notifications for pocket mode. */
     private val pocketPermission = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         val ctx = context ?: return@registerForActivityResult
-        if (LocationHelper.hasPrecise(ctx)) startPocket() else toast(R.string.pocket_needs_precise)
+        when {
+            LocationHelper.hasPrecise(ctx) -> startPocket()
+            locationBlocked() -> Ui.openAppSettings(ctx)
+            else -> toast(R.string.pocket_needs_precise)
+        }
         loadNearby()
     }
 

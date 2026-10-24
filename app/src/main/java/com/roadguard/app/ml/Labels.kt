@@ -19,8 +19,11 @@ object Labels {
     private const val TAG = "RoadGuardLabels"
     private const val TAIL_BYTES = 256 * 1024
 
-    /** Names baked into the bundled best.tflite, used if the metadata can't be read. */
-    val fallback = listOf("Drain Hole", "Pothole", "Sewer Cover")
+    /**
+     * Names baked into the bundled best.tflite (v3, trained on RDD: ml/prepare_rdd.py), used if
+     * the metadata can't be read. The order is the class index order.
+     */
+    val fallback = listOf("Pothole", "Alligator Crack", "Longitudinal Crack", "Transverse Crack")
 
     fun readFromModel(context: Context, assetName: String): List<String> {
         return try {

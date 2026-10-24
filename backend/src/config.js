@@ -42,8 +42,11 @@ const config = {
   sensor: {
     // Hits closer than this to a hazard confirm it; hits this close to each other corroborate.
     radiusMeters: 15,
-    // Distinct drivers who must feel the same spot before it becomes a "Rough patch".
-    promoteUsers: 3,
+    // A spot becomes a "Rough patch" once this many different drivers feel it...
+    promoteUsers: Number(process.env.SENSOR_PROMOTE_USERS || 3),
+    // ...or once it has been felt on this many different days (one daily commuter is real
+    // evidence too; a single speed breaker or door slam on one day is not).
+    promoteDays: Number(process.env.SENSOR_PROMOTE_DAYS || 3),
     windowDays: 30,
     maxAgeDays: 14,
     maxAccuracyMeters: 30,

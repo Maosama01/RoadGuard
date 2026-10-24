@@ -39,3 +39,6 @@ backend/data-live/
 
 # Local helper
 /push_to_github.sh
+
+/_to_delete/
+/ops/reports/

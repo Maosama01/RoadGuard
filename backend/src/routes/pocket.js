@@ -4,9 +4,9 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const { z, parse, optionalNumber } = require('../validate');
-const { requireAuth } = require('../auth');
+const { requireAuth, requireRole } = require('../auth');
 const { parseBbox } = require('../geo');
-const { ingestSensorHits } = require('../sensors');
+const { ingestSensorHits, pendingClusters } = require('../sensors');
 const { ingestDrive, coverageCells } = require('../coverage');
 
 const hitSchema = z.object({
@@ -57,6 +57,13 @@ module.exports = function pocketRoutes(db) {
     if (!body) return;
     const result = ingestSensorHits(db, req.user, body.hits);
     res.json({ success: true, ...result });
+  });
+
+  /** Dashboard: pocket-mode jolts not yet confirmed as a rough patch, grouped by spot. */
+  router.get('/sensor-hits/pending', requireRole('authority', 'admin'), (req, res) => {
+    const q = parse(z.object({ days: z.coerce.number().int().min(1).max(30).default(30) }), req.query, res);
+    if (!q) return;
+    res.json({ success: true, items: pendingClusters(db, { days: q.days }) });
   });
 
   router.post('/drives', requireAuth, limiter, (req, res) => {

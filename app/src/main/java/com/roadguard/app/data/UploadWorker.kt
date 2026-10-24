@@ -35,11 +35,10 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
             val batch = dao.pending()
             if (batch.isEmpty()) return Result.success()
             for (report in batch) {
-                val withRoad = if (report.roadName.isNullOrBlank()) {
-                    report.copy(roadName = roadNameFor(report.latitude, report.longitude))
-                } else report
+                val place = placeFor(report.latitude, report.longitude)
+                val withRoad = if (report.roadName.isNullOrBlank()) report.copy(roadName = place.road) else report
 
-                when (val result = apiCall { uploadReport(fields(withRoad), imagePart(withRoad.imagePath)) }) {
+                when (val result = apiCall { uploadReport(fields(withRoad, place.area), imagePart(withRoad.imagePath)) }) {
                     is ApiResult.Ok -> {
                         dao.delete(report)
                         report.imagePath?.let { File(it).delete() }
@@ -69,7 +68,7 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         return Result.success()
     }
 
-    private fun fields(r: PendingReport): Map<String, RequestBody> {
+    private fun fields(r: PendingReport, area: String?): Map<String, RequestBody> {
         val text = "text/plain".toMediaType()
         val map = linkedMapOf(
             "clientId" to r.clientId,
@@ -86,6 +85,7 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         )
         r.heading?.let { map["heading"] = it.toString() }
         r.roadName?.takeIf { it.isNotBlank() }?.let { map["roadName"] = it }
+        area?.takeIf { it.isNotBlank() }?.let { map["area"] = it }
         return map.mapValues { it.value.toRequestBody(text) }
     }
 
@@ -94,14 +94,36 @@ class UploadWorker(context: Context, params: WorkerParameters) : CoroutineWorker
         return MultipartBody.Part.createFormData("image", file.name, file.asRequestBody("image/jpeg".toMediaType()))
     }
 
-    /** Best-effort street name so the city sees "Rajpur Road" instead of coordinates. */
+    private data class Place(val road: String?, val area: String?)
+
+    /**
+     * Best-effort street and neighbourhood, so the city sees "Rajpur Road" (or "near Bidholi")
+     * instead of coordinates. Only a real street counts as the road: Android often returns a
+     * Plus Code ("9X9J+5P8") or "Unnamed Road" as the feature name, and those never match a
+     * contractor's road. English, so names match the city's road records.
+     */
     @Suppress("DEPRECATION")
-    private fun roadNameFor(lat: Double, lng: Double): String? = try {
-        if (!Geocoder.isPresent()) null
-        else Geocoder(applicationContext, Locale.getDefault()).getFromLocation(lat, lng, 1)?.firstOrNull()?.let {
-            it.thoroughfare ?: it.subLocality ?: it.featureName
+    private fun placeFor(lat: Double, lng: Double): Place = try {
+        if (!Geocoder.isPresent()) Place(null, null)
+        else {
+            val a = Geocoder(applicationContext, Locale.ENGLISH).getFromLocation(lat, lng, 1)?.firstOrNull()
+            Place(
+                road = a?.thoroughfare?.takeIf { usableName(it) },
+                area = (a?.subLocality ?: a?.locality)?.takeIf { usableName(it) },
+            )
         }
     } catch (_: Exception) {
-        null
+        Place(null, null)
+    }
+
+    private fun usableName(name: String): Boolean {
+        val n = name.trim()
+        if (n.isEmpty() || n.equals("Unnamed Road", ignoreCase = true)) return false
+        if (PLUS_CODE.containsMatchIn(n)) return false
+        return n.any { it.isLetter() }
+    }
+
+    private companion object {
+        val PLUS_CODE = Regex("^[23456789CFGHJMPQRVWX]{2,8}\\+[23456789CFGHJMPQRVWX]{0,3}", RegexOption.IGNORE_CASE)
     }
 }

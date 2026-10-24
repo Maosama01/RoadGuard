@@ -473,7 +473,7 @@ function complaint(db, h, { base, lang = 'en', now = Date.now() } = {}) {
 
   if (lang === 'hi') {
     const t = HI.type[h.type] || HI.type.other;
-    const road = h.road_name || `निर्देशांक ${lat}, ${lng} के पास की सड़क`;
+    const road = h.road_name || (h.area ? `${h.area} क्षेत्र की सड़क (निर्देशांक ${lat}, ${lng})` : `निर्देशांक ${lat}, ${lng} के पास की सड़क`);
     const lines = [
       'सेवा में,',
       to.officerName || 'संबंधित वार्ड अधिकारी महोदय/महोदया',
@@ -521,7 +521,7 @@ function complaint(db, h, { base, lang = 'en', now = Date.now() } = {}) {
   }
 
   const label = H.TYPE_LABELS[h.type] || 'Road hazard';
-  const road = h.road_name || `the road near ${lat}, ${lng}`;
+  const road = h.road_name || (h.area ? `a road in ${h.area} (near ${lat}, ${lng})` : `the road near ${lat}, ${lng}`);
   const subject = `${label} on ${road} needs repair (${ref})`;
   const lines = [
     'To,',

@@ -51,9 +51,11 @@ function listFilter(query) {
     params.push(bbox.minLat, bbox.maxLat, bbox.minLng, bbox.maxLng);
   }
   if (query.q) {
-    where.push("(road_name LIKE ? OR area LIKE ? OR CAST(id AS TEXT) = ?)");
-    const like = `%${String(query.q).trim()}%`;
-    params.push(like, like, String(query.q).trim().replace(/^#/, ''));
+    const q = String(query.q).trim();
+    // "%" and "_" typed by a person are literal characters, not wildcards.
+    const like = `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+    where.push("(road_name LIKE ? ESCAPE '\\' OR area LIKE ? ESCAPE '\\' OR CAST(id AS TEXT) = ?)");
+    params.push(like, like, q.replace(/^#/, ''));
   }
   if (query.likelyFixed === '1') where.push('clean_passes >= 5');
   if (query.contractor) {
@@ -85,9 +87,9 @@ module.exports = function hazardRoutes(db, baseUrlOf) {
     A.escalate(db);
     const { sql, params } = listFilter(req.query);
     const order = SORTS[req.query.sort] || SORTS.priority;
-    const limit = Math.min(Number(req.query.limit) || 100, 1000);
-    const offset = Math.max(Number(req.query.offset) || 0, 0);
-    const rows = db.prepare(`SELECT * FROM hazards ${sql} ORDER BY ${order} LIMIT ? OFFSET ?`).all(...params, limit, offset);
+    const limit = Math.min(Math.max(Math.floor(Number(req.query.limit)) || 100, 1), 1000);
+    const offset = Math.max(Math.floor(Number(req.query.offset)) || 0, 0);
+    const rows = db.prepare(`SELECT * FROM hazards ${sql} ORDER BY ${order}, id DESC LIMIT ? OFFSET ?`).all(...params, limit, offset);
     const total = db.prepare(`SELECT COUNT(*) n FROM hazards ${sql}`).get(...params).n;
     const base = baseUrlOf(req);
     const lk = H.lookups(db);
@@ -319,7 +321,8 @@ module.exports = function hazardRoutes(db, baseUrlOf) {
 
     db.transaction(() => {
       const now = Date.now();
-      if (body.assignedTeam !== undefined && body.assignedTeam !== h.assigned_team) {
+      if (body.assignedTeam !== undefined) body.assignedTeam = body.assignedTeam || null;
+      if (body.assignedTeam !== undefined && body.assignedTeam !== (h.assigned_team || null)) {
         db.prepare('UPDATE hazards SET assigned_team = ?, updated_at = ? WHERE id = ?').run(body.assignedTeam || null, now, h.id);
         H.addEvent(db, h.id, req.user.id, 'assigned', { note: body.assignedTeam ? `Assigned to ${body.assignedTeam}` : 'Unassigned', at: now });
         h = db.prepare('SELECT * FROM hazards WHERE id = ?').get(h.id);

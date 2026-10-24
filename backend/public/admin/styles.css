@@ -168,6 +168,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .q-edge.is-done { background: repeating-linear-gradient(to bottom, var(--done) 0 6px, transparent 6px 10px); }
 .q-prio { font-family: var(--font-cond); font-weight: 700; font-size: 30px; line-height: 1; text-align: right; font-variant-numeric: tabular-nums; }
 .q-prio small { display: block; font-family: var(--font); font-size: 11px; font-weight: 500; color: var(--muted); margin-top: 2px; }
+.dot-jolt { background: #7A5AF8; }
+.q-coords { display: block; font-family: var(--font); font-size: 11px; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
 .q-main { min-width: 0; }
 .q-title { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .q-sub { color: var(--muted); font-size: 13px; display: flex; gap: 10px; flex-wrap: wrap; margin-top: 2px; }
@@ -355,17 +357,26 @@ table.roads th { white-space: nowrap; }
 }
 @media (max-width: 1200px) {
   .pulse div:nth-child(n+4) { display: none; }
+  .me-name { display: none; }
   .detail { position: fixed; right: 0; top: 58px; bottom: 0; z-index: 1000; box-shadow: var(--shadow-panel); width: min(420px, 100%); }
   .view-queue { grid-template-columns: 340px 1fr; }
 }
-@media (max-width: 760px) {
-  .topbar { flex-wrap: wrap; gap: 8px 16px; padding: 8px 16px 0; }
+@media (max-width: 1100px) {
+  .pulse div:nth-child(n+3) { display: none; }
+}
+/* Tablets and narrow laptop windows: brand and account on top, numbers and tabs below,
+   so Sign out and Export never slide off the edge. */
+@media (max-width: 980px) {
+  .topbar { flex-wrap: wrap; gap: 8px 16px; padding: 8px 16px 0; overflow-x: visible; }
   .pulse { order: 3; width: 100%; margin: 0; padding-bottom: 8px; gap: 16px; }
   .pulse div:nth-child(n+4) { display: none; }
+  .pulse div:nth-child(-n+3) { display: flex; }
   .me { margin-left: auto; }
-  .me-name, #exportBtn { display: none; }
-  .tabs { order: 4; width: 100%; }
+  .tabs { order: 4; width: 100%; overflow-x: auto; }
   .tab { padding: 10px 12px; }
+}
+@media (max-width: 760px) {
+  #exportBtn { display: none; }
   .view-queue { grid-template-columns: 1fr; grid-template-rows: 46vh auto; height: auto; }
   .map-wrap { grid-row: 1; min-height: 46vh; }
   .queue { grid-row: 2; border-right: 0; }

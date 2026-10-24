@@ -196,9 +196,9 @@ class YOLODetector(context: Context) {
             val it = remaining.iterator()
             while (it.hasNext()) {
                 val other = it.next()
-                // Class-agnostic: a sewer cover also scored as a weaker "drain hole" on the same
-                // spot must not slip through as a reportable drain.
-                if (iou(best.boundingBox, other.boundingBox) > iouThreshold) it.remove()
+                // Per class, like the training benchmark: a pothole sits inside cracked road, and a
+                // stronger crack box over the same spot must not erase the pothole.
+                if (other.classId == best.classId && iou(best.boundingBox, other.boundingBox) > iouThreshold) it.remove()
             }
         }
         return selected

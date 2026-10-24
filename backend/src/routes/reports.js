@@ -30,6 +30,8 @@ const reportSchema = z
     shock: optionalNumber(z.coerce.number().min(0).max(200)),
     severityScore: z.coerce.number().min(0).max(100),
     roadName: z.string().trim().max(160).optional(),
+    /** Neighbourhood or locality, for when the phone cannot name the street. */
+    area: z.string().trim().max(120).optional(),
     note: z.string().trim().max(500).optional(),
     timestamp: optionalNumber(z.coerce.number().int().positive()),
   })
@@ -100,8 +102,8 @@ module.exports = function reportRoutes(db, baseUrlOf) {
   });
 
   router.get('/mine', requireAuth, (req, res) => {
-    const limit = Math.min(Number(req.query.limit) || 30, 100);
-    const offset = Math.max(Number(req.query.offset) || 0, 0);
+    const limit = Math.min(Math.max(Math.floor(Number(req.query.limit)) || 30, 1), 100);
+    const offset = Math.max(Math.floor(Number(req.query.offset)) || 0, 0);
     const rows = db
       .prepare(
         `SELECT r.*, h.status AS h_status, h.report_count AS h_count, h.road_name AS h_road

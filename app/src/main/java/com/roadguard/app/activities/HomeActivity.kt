@@ -2,6 +2,7 @@ package com.roadguard.app.activities
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -32,20 +33,30 @@ class HomeActivity : AppCompatActivity() {
         setContentView(binding.root)
         binding.container.padForSystemBars(top = true)
 
+        binding.bottomNav.setOnItemReselectedListener {
+            (supportFragmentManager.findFragmentById(R.id.container) as? Refreshable)?.refresh()
+        }
+
+        if (savedInstanceState == null) show(R.id.nav_home)
+
+        // Back on Map, Reports or Profile goes to Home first instead of closing the app.
+        val backToHome = object : OnBackPressedCallback(false) {
+            override fun handleOnBackPressed() {
+                binding.bottomNav.selectedItemId = R.id.nav_home
+            }
+        }
+        onBackPressedDispatcher.addCallback(this, backToHome)
         binding.bottomNav.setOnItemSelectedListener { item ->
             if (item.itemId == R.id.nav_drive) {
                 startDrive()
                 false // Drive opens full screen; keep the current tab selected.
             } else {
                 show(item.itemId)
+                backToHome.isEnabled = item.itemId != R.id.nav_home
                 true
             }
         }
-        binding.bottomNav.setOnItemReselectedListener {
-            (supportFragmentManager.findFragmentById(R.id.container) as? Refreshable)?.refresh()
-        }
-
-        if (savedInstanceState == null) show(R.id.nav_home)
+        backToHome.isEnabled = binding.bottomNav.selectedItemId != R.id.nav_home
 
         // Badge on Reports while sightings wait for network.
         val badge = binding.bottomNav.getOrCreateBadge(R.id.nav_reports).apply {

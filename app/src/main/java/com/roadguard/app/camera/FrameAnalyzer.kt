@@ -6,6 +6,7 @@ import android.os.SystemClock
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import com.roadguard.app.core.DetectionFusion
+import com.roadguard.app.core.HazardKind
 import com.roadguard.app.ml.Detection
 import com.roadguard.app.ml.YOLODetector
 import com.roadguard.app.utils.ImageUtils
@@ -37,6 +38,10 @@ class FrameAnalyzer(
     companion object {
         /** Upper bound on analysis rate; slower phones are naturally limited by inference time. */
         private const val MIN_INTERVAL_MS = 150L
+        private const val POTHOLE_PREFERENCE = 0.1f
+        private const val IDLE_INTERVAL_MS = 1_000L
+        private const val IDLE_FIX_AGE_MS = 4_000L
+        private const val IDLE_SPEED_KMH = 5f
     }
 
     private var lastAnalysis = 0L
@@ -47,7 +52,12 @@ class FrameAnalyzer(
 
     override fun analyze(image: ImageProxy) {
         val now = System.currentTimeMillis()
-        if (paused || now - lastAnalysis < MIN_INTERVAL_MS) {
+        // Nothing can be reported without a fresh GPS fix or while parked, so look about once a
+        // second then (the boxes still show) instead of six times: far less heat and battery.
+        val fix = currentFix()
+        val idle = fix == null || now - fix.timestamp > IDLE_FIX_AGE_MS || fix.speedKmh < IDLE_SPEED_KMH
+        val interval = if (idle && !fusion.hasCandidate) IDLE_INTERVAL_MS else MIN_INTERVAL_MS
+        if (paused || now - lastAnalysis < interval) {
             image.close()
             drain(now)
             return
@@ -61,12 +71,15 @@ class FrameAnalyzer(
             val detections = detector.detect(frame)
             listener.onFrameResult(detections, frame.width, frame.height, SystemClock.elapsedRealtime() - t0)
 
-            val best = detections.filter { it.kind.reportable }.maxByOrNull { it.confidence }
+            // A pothole inside cracked road is the thing worth reporting, even when the crack
+            // around it scores a little higher.
+            val best = detections.filter { it.kind.reportable }
+                .maxByOrNull { it.confidence + if (it.kind == HazardKind.POTHOLE) POTHOLE_PREFERENCE else 0f }
             if (best != null) {
                 val area = SeverityCalculator.calculateNormalizedBoundingBoxArea(
                     best.boundingBox.width(), best.boundingBox.height(), frame.width, frame.height
                 )
-                val isBestView = fusion.onDetection(best.kind, best.confidence, area, now, currentFix())
+                val isBestView = fusion.onDetection(best.kind, best.confidence, area, now, fix)
                 val id = fusion.currentCandidateId
                 if (isBestView && id != null) {
                     keptFrames.remove(id)?.first?.recycle()

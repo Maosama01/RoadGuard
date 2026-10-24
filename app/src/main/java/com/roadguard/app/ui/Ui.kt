@@ -20,6 +20,24 @@ import kotlin.math.roundToInt
 /** Small formatting and styling helpers shared by every screen. */
 object Ui {
 
+    /**
+     * After "Don't ask again", Android silently refuses every permission request; only the app's
+     * page in system settings can grant it. Some locked-down phones have no such page.
+     */
+    fun openAppSettings(context: Context, @StringRes hint: Int = R.string.location_blocked_hint) {
+        try {
+            context.startActivity(
+                android.content.Intent(
+                    android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                    android.net.Uri.fromParts("package", context.packageName, null),
+                ).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+            )
+            android.widget.Toast.makeText(context, hint, android.widget.Toast.LENGTH_LONG).show()
+        } catch (_: android.content.ActivityNotFoundException) {
+            android.widget.Toast.makeText(context, hint, android.widget.Toast.LENGTH_LONG).show()
+        }
+    }
+
     // ------------------------------------------------------------------ language
 
     /**

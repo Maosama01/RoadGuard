@@ -87,8 +87,26 @@ object Session {
     fun signOut() {
         prefs.edit()
             .remove("token").remove("user_id").remove("user_name").remove("user_email").remove("is_guest")
-            .remove("offline_guest")
+            .remove("offline_guest").remove("session_expired")
             .apply()
+    }
+
+    /**
+     * A registered account's token stopped working. Back to the sign-in screen, with the email
+     * pre-filled and a note saying why; unsent reports stay queued for the same account.
+     */
+    fun expire() {
+        val email = userEmail
+        signOut()
+        prefs.edit().putBoolean("session_expired", true).apply()
+        if (email != null) lastEmail = email
+    }
+
+    /** True once after [expire]: the sign-in screen explains why it is showing. */
+    fun consumeExpiredNotice(): Boolean {
+        val v = prefs.getBoolean("session_expired", false)
+        if (v) prefs.edit().remove("session_expired").apply()
+        return v
     }
 
     fun normalizeUrl(input: String): String {

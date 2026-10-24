@@ -22,7 +22,11 @@ import com.roadguard.app.database.RoadGuardDatabase
 import com.roadguard.app.databinding.FragmentReportsBinding
 import com.roadguard.app.ui.Refreshable
 import com.roadguard.app.ui.visible
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
 
 class ReportsFragment : Fragment(), Refreshable {
 
@@ -31,7 +35,7 @@ class ReportsFragment : Fragment(), Refreshable {
 
     private val adapter = ReportAdapter(
         onOpen = { HazardDetailActivity.start(requireContext(), it.hazardId) },
-        onRetryRejected = { viewLifecycleOwner.lifecycleScope.launch { ReportQueue.retryRejected(requireContext()) } },
+        onRetryRejected = { askAboutRejected() },
     )
 
     private var pending: List<PendingReport> = emptyList()
@@ -87,6 +91,28 @@ class ReportsFragment : Fragment(), Refreshable {
         }
     }
 
+    /** Refused reports: send them again, or clear them away for good. */
+    private fun askAboutRejected() {
+        val ctx = context ?: return
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle(R.string.reports_rejected)
+            .setMessage(R.string.reports_rejected_choice)
+            .setNegativeButton(R.string.action_cancel, null)
+            .setNeutralButton(R.string.reports_delete_rejected) { _, _ ->
+                viewLifecycleOwner.lifecycleScope.launch {
+                    withContext(Dispatchers.IO) {
+                        val dao = RoadGuardDatabase.get(ctx).dao()
+                        dao.rejected().forEach { r -> r.imagePath?.let { File(it).delete() } }
+                        dao.deleteRejected()
+                    }
+                }
+            }
+            .setPositiveButton(R.string.action_try_again) { _, _ ->
+                viewLifecycleOwner.lifecycleScope.launch { ReportQueue.retryRejected(ctx) }
+            }
+            .show()
+    }
+
     private fun render() {
         if (_binding == null) return
         val rows = ArrayList<ReportAdapter.Row>()
@@ -101,7 +127,7 @@ class ReportsFragment : Fragment(), Refreshable {
             waiting.forEach { rows += ReportAdapter.Row.Pending(it) }
         }
         if (rejected.isNotEmpty()) {
-            rows += ReportAdapter.Row.Header(getString(R.string.reports_rejected), action = getString(R.string.action_try_again))
+            rows += ReportAdapter.Row.Header(getString(R.string.reports_rejected), action = getString(R.string.reports_rejected_action))
             rejected.forEach { rows += ReportAdapter.Row.Pending(it) }
         }
         if (sent.isNotEmpty()) {

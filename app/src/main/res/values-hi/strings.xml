@@ -169,6 +169,18 @@
 
     <!-- Spoken warning: "आगे गड्ढा है, 120 मीटर" -->
     <string name="alert_ahead_speech">आगे %1$s है, %2$d मीटर</string>
+    <string name="speech_sev_critical">बहुत ख़तरनाक</string>
+    <string name="speech_sev_high">ख़तरनाक</string>
+    <string name="speech_sev_medium"></string>
+    <string name="speech_sev_low"></string>
+    <string name="alert_speech_road">%1$s पर।</string>
+    <plurals name="alert_speech_drivers">
+        <item quantity="one">%d ड्राइवर ने बताया है।</item>
+        <item quantity="other">%d ड्राइवरों ने बताया है।</item>
+    </plurals>
+    <string name="hazard_alert_channel_name">ख़तरे की चेतावनी</string>
+    <string name="hazard_alert_channel_description">पॉकेट मोड में किसी जाने-पहचाने गड्ढे के पास पहुंचने पर दिखती है</string>
+    <string name="hazard_alert_title">आगे %1$s, %2$d मी</string>
 
     <!-- Hazard detail -->
     <string name="detail_title">ख़तरा #%1$d</string>
@@ -235,6 +247,11 @@
     <string name="timeline_community_resolved">ड्राइवरों ने पुष्टि की कि ठीक हो गया</string>
     <string name="timeline_reopened">ठीक होने के बाद फिर से दिखा</string>
     <string name="timeline_update">अपडेट</string>
+    <string name="timeline_auto_assigned">ठेकेदार को भेजा गया</string>
+    <string name="timeline_escalated">समय सीमा निकली, अधिकारी को भेजा गया</string>
+    <string name="timeline_repaired">मरम्मत हुई, फ़ोटो के साथ</string>
+    <string name="timeline_actor_driver">एक ड्राइवर</string>
+    <string name="timeline_actor_city">नगर टीम</string>
     <string name="timeline_when">%1$s, %2$s</string>
 
     <!-- Hazard detail: accountability -->
@@ -286,6 +303,9 @@
     <string name="reports_waiting">भेजनी बाकी</string>
     <string name="reports_waiting_count">भेजनी बाकी (%1$d)</string>
     <string name="reports_rejected">RoadGuard इन्हें स्वीकार नहीं कर पाया</string>
+    <string name="reports_rejected_action">विकल्प</string>
+    <string name="reports_rejected_choice">सर्वर ने इन्हें स्वीकार नहीं किया, आमतौर पर इसलिए कि ये बहुत पुरानी थीं या कोई सेटिंग गलत थी। इन्हें फिर से भेजें, या इस फ़ोन से मिटा दें।</string>
+    <string name="reports_delete_rejected">मिटाएं</string>
     <string name="reports_sent">भेजी गईं</string>
     <string name="reports_subtitle_empty">आप जो भी रिपोर्ट करेंगे, वह यहाँ दिखेगा।</string>
     <string name="reports_subtitle_fixed">%1$d भेजीं, %2$d ठीक हो चुकीं</string>
@@ -336,7 +356,13 @@
 
     <!-- Sign out dialog (Settings and Profile) -->
     <string name="sign_out_title">साइन आउट करें?</string>
-    <string name="sign_out_message">इस फ़ोन पर रुकी रिपोर्ट आपके दोबारा साइन इन करने के बाद भेजी जाएंगी।</string>
+    <string name="sign_out_message">आप कभी भी दोबारा साइन इन कर सकते हैं। आपके पॉइंट और रिपोर्ट आपके अकाउंट में रहेंगे।</string>
+    <plurals name="sign_out_unsent">
+        <item quantity="one">%d रिपोर्ट अभी इस फ़ोन पर है और भेजी नहीं गई है। साइन आउट करने से वह मिट जाएगी। ऑनलाइन हों तो “अभी भेजें” दबाकर एक मिनट रुकें।</item>
+        <item quantity="other">%d रिपोर्ट अभी इस फ़ोन पर हैं और भेजी नहीं गई हैं। साइन आउट करने से वे मिट जाएंगी। ऑनलाइन हों तो “अभी भेजें” दबाकर एक मिनट रुकें।</item>
+    </plurals>
+    <string name="sign_out_sending">भेजा जा रहा है। एक मिनट बाद फिर से साइन आउट करें।</string>
+    <string name="sign_out_delete_and_leave">मिटाएं और साइन आउट करें</string>
     <string name="sign_out_message_guest">आप इस फ़ोन पर “स्कैनिंग शुरू करें” चुनकर इस गेस्ट अकाउंट में वापस आ सकते हैं।</string>
 
     <!-- Sign in -->
@@ -414,6 +440,10 @@
 
     <!-- Network errors -->
     <string name="error_sign_in_again">कृपया फिर से साइन इन करें।</string>
+    <string name="error_wrong_password">ईमेल या पासवर्ड गलत है।</string>
+    <string name="error_email_taken">इस ईमेल से पहले से एक अकाउंट है। साइन इन करके देखें।</string>
+    <string name="error_too_many">थोड़े समय में बहुत ज़्यादा कोशिशें। कृपया कुछ मिनट रुकें।</string>
+    <string name="login_session_expired">आप साइन आउट हो गए थे। फिर से साइन इन करें, आपकी सेव रिपोर्ट भेज दी जाएंगी।</string>
     <string name="error_forbidden">आपको इसकी अनुमति नहीं है।</string>
     <string name="error_not_found">यह चीज़ अब मौजूद नहीं है।</string>
     <string name="error_server">RoadGuard सर्वर में दिक्कत आई। थोड़ी देर में फिर से कोशिश करें।</string>
@@ -432,6 +462,7 @@
     <string name="drive_status_location_off">फ़ोन की लोकेशन बंद है</string>
     <string name="drive_detail_location_off">इसे चालू करने के लिए यहां टैप करें</string>
     <string name="drive_error_camera_friendly">कैमरा शुरू नहीं हो पाया। दूसरे कैमरा ऐप बंद करें और यहां टैप करें।</string>
+    <string name="drive_camera_blocked_hint">RoadGuard के लिए कैमरा बंद है। अनुमतियां, फिर कैमरा पर टैप करें और अनुमति दें चुनें।</string>
     <string name="location_blocked_hint">RoadGuard के लिए लोकेशन बंद है। अनुमतियां, फिर लोकेशन पर टैप करें और अनुमति दें चुनें।</string>
     <string name="login_offline_started">अभी कनेक्शन नहीं है, फिर भी आप ड्राइव कर सकते हैं। रिपोर्ट आपके फ़ोन में सेव होंगी और ऑनलाइन होते ही भेज दी जाएंगी।</string>
     <string name="tap_to_retry">फिर से कोशिश करने के लिए टैप करें</string>

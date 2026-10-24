@@ -9,7 +9,8 @@ import org.junit.Test
 class DetectionFusionTest {
 
     private val fix = DetectionFusion.Fix(30.3165, 78.0322, 6f, 36f, 90f, 0L)
-    private fun fixAt(metersNorth: Double) = fix.copy(latitude = fix.latitude + metersNorth / 111_320.0)
+    private fun fixAt(metersNorth: Double, at: Long = 0L) =
+        fix.copy(latitude = fix.latitude + metersNorth / 111_320.0, timestamp = at)
 
     @Test
     fun `jolt after the camera saw it confirms with shock`() {
@@ -74,10 +75,10 @@ class DetectionFusionTest {
         val f = DetectionFusion()
         f.onDetection(HazardKind.POTHOLE, 0.9f, 0.04f, 1_000, fix)
         assertNotNull(f.poll(4_000))
-        f.onDetection(HazardKind.POTHOLE, 0.9f, 0.04f, 10_000, fixAt(5.0))
+        f.onDetection(HazardKind.POTHOLE, 0.9f, 0.04f, 10_000, fixAt(5.0, at = 9_000))
         assertNull(f.poll(13_000))
         assertEquals(DetectionFusion.Outcome.DROPPED_DUPLICATE, f.lastOutcome)
-        f.onDetection(HazardKind.POTHOLE, 0.9f, 0.04f, 20_000, fixAt(80.0))
+        f.onDetection(HazardKind.POTHOLE, 0.9f, 0.04f, 20_000, fixAt(80.0, at = 19_000))
         assertNotNull(f.poll(23_000))
     }
 
@@ -114,5 +115,55 @@ class DetectionFusionTest {
         assertTrue(f.onDetection(HazardKind.POTHOLE, 0.6f, 0.02f, 1_000, fix))
         assertTrue(f.onDetection(HazardKind.POTHOLE, 0.8f, 0.03f, 1_200, fix))
         assertTrue(!f.onDetection(HazardKind.POTHOLE, 0.7f, 0.03f, 1_400, fix))
+    }
+
+    @Test
+    fun `nothing is reported while the car is standing still`() {
+        val f = DetectionFusion()
+        f.onDetection(HazardKind.POTHOLE, 0.95f, 0.05f, 1_000, fix.copy(speedKmh = 0f))
+        f.onShock(9f, 1_400)
+        assertNull(f.poll(1_500))
+        assertEquals(DetectionFusion.Outcome.DROPPED_NOT_MOVING, f.lastOutcome)
+    }
+
+    @Test
+    fun `an old gps fix cannot place a report`() {
+        val f = DetectionFusion()
+        f.onDetection(HazardKind.POTHOLE, 0.95f, 0.05f, 30_000, fix) // fix from 30 s earlier
+        assertNull(f.poll(30_000 + 2_600))
+        assertEquals(DetectionFusion.Outcome.DROPPED_NO_GPS, f.lastOutcome)
+    }
+
+    @Test
+    fun `a jolt-confirmed report sits where the wheels hit it, not where the camera saw it`() {
+        // 36 km/h = 10 m/s heading east; the jolt comes 1.5 s after the fix.
+        val f = DetectionFusion()
+        f.onDetection(HazardKind.POTHOLE, 0.9f, 0.04f, 200, fix)
+        f.onShock(9f, 1_500)
+        val c = f.poll(1_600)!!
+        val moved = GeoUtils.distanceMeters(fix.latitude, fix.longitude, c.fix.latitude, c.fix.longitude)
+        assertEquals(15.0, moved, 1.0)
+        assertTrue("moved east", c.fix.longitude > fix.longitude)
+    }
+
+    @Test
+    fun `a visual-only report is moved ahead by the camera lead, and never too far`() {
+        val f = DetectionFusion()
+        f.onDetection(HazardKind.POTHOLE, 0.9f, 0.04f, 500, fix)
+        val c = f.poll(500 + 2_600)!!
+        val moved = GeoUtils.distanceMeters(fix.latitude, fix.longitude, c.fix.latitude, c.fix.longitude)
+        assertEquals(20.0, moved, 1.0) // (0.5 s + 1.5 s lead) x 10 m/s
+        val fast = DetectionFusion()
+        fast.onDetection(HazardKind.POTHOLE, 0.9f, 0.04f, 3_000, fix.copy(speedKmh = 120f))
+        val far = fast.poll(3_000 + 2_600)!!
+        assertTrue(GeoUtils.distanceMeters(fix.latitude, fix.longitude, far.fix.latitude, far.fix.longitude) <= 40.5)
+    }
+
+    @Test
+    fun `the app's own calibrated settings still ignore a single weak frame`() {
+        val f = DetectionFusion(DetectionFusion.Config.forModel(singleHitConfidence = 0.55f, reportConfidence = 0.4f, requireShock = false))
+        f.onDetection(HazardKind.POTHOLE, 0.45f, 0.02f, 1_000, fix)
+        assertNull(f.poll(1_000 + 6_000))
+        assertEquals(DetectionFusion.Outcome.DROPPED_WEAK, f.lastOutcome)
     }
 }

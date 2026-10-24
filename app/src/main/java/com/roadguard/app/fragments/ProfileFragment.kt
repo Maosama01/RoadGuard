@@ -87,6 +87,7 @@ class ProfileFragment : Fragment(), Refreshable {
     }
 
     private fun showStats(s: MyStats) {
+        binding.txtNext.setOnClickListener(null) // it was a retry button after an error
         binding.txtLevel.text = s.level ?: getString(R.string.level_default)
         binding.txtPoints.text = resources.getQuantityString(R.plurals.profile_points, s.points, s.points)
         val next = s.nextLevelPoints
@@ -138,19 +139,7 @@ class ProfileFragment : Fragment(), Refreshable {
     }
 
     private fun confirmSignOut() {
-        val message = if (Session.isGuest) R.string.sign_out_message_guest else R.string.sign_out_message
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.sign_out_title)
-            .setMessage(message)
-            .setNegativeButton(R.string.action_cancel, null)
-            .setPositiveButton(R.string.action_sign_out) { _, _ ->
-                Session.signOut()
-                startActivity(
-                    Intent(requireContext(), LoginActivity::class.java)
-                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                )
-            }
-            .show()
+        com.roadguard.app.data.SignOut.confirm(requireActivity(), viewLifecycleOwner.lifecycleScope)
     }
 
     override fun onDestroyView() {

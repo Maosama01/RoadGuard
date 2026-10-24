@@ -66,6 +66,7 @@ import com.roadguard.app.utils.SeverityCalculator
 import com.roadguard.app.utils.SeverityLevel
 import com.roadguard.app.utils.SeverityResult
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
@@ -97,11 +98,10 @@ class DriveActivity : AppCompatActivity(), FrameAnalyzer.Listener {
     private val fusion by lazy {
         val model = ModelConfig.load(applicationContext)
         DetectionFusion(
-            DetectionFusion.Config(
-                mergeWindowMs = 2_500,
-                requireShock = Settings.requireBump,
+            DetectionFusion.Config.forModel(
                 singleHitConfidence = model.singleHitThreshold,
-                visualOnlyMinConfidence = model.reportThreshold,
+                reportConfidence = model.reportThreshold,
+                requireShock = Settings.requireBump,
             )
         )
     }
@@ -190,6 +190,7 @@ class DriveActivity : AppCompatActivity(), FrameAnalyzer.Listener {
             hazardAlerts.onShock(shock.timestamp)
         }
         accelerometer.setShockThreshold(Settings.shockThreshold)
+        hazardAlerts.canFeelJolts = accelerometer.available
         locationHelper = LocationHelper(this) { onLocation(it) }
 
         requestPermissionsIfNeeded()
@@ -218,9 +219,7 @@ class DriveActivity : AppCompatActivity(), FrameAnalyzer.Listener {
             hasPermission(Manifest.permission.CAMERA) -> startEverything()
             shouldShowRequestPermissionRationale(Manifest.permission.CAMERA) -> requestPermissionsIfNeeded()
             // "Don't ask again" was chosen: only the app's system settings can grant it now.
-            else -> startActivity(
-                Intent(AndroidSettings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null))
-            )
+            else -> Ui.openAppSettings(this, R.string.drive_camera_blocked_hint)
         }
     }
 
@@ -247,7 +246,13 @@ class DriveActivity : AppCompatActivity(), FrameAnalyzer.Listener {
         if (started) return
         started = true
         lifecycleScope.launch {
-            val loaded = withContext(Dispatchers.Default) { runCatching { YOLODetector(applicationContext) } }
+            // NonCancellable: if the screen closes while the model loads, it must still be closed
+            // here rather than dropped with its native memory.
+            val loaded = withContext(NonCancellable + Dispatchers.Default) { runCatching { YOLODetector(applicationContext) } }
+            if (destroyed) {
+                loaded.getOrNull()?.close()
+                return@launch
+            }
             loaded.onSuccess {
                 detector = it
                 startCamera(it)
@@ -408,6 +413,7 @@ class DriveActivity : AppCompatActivity(), FrameAnalyzer.Listener {
 
     private fun onLocation(d: LocationData) {
         driveLog.onLocation(d)
+        accelerometer.updateSpeed(d.speedKmh)
         lastLocation = d
         // Stamped with arrival time: GPS time can drift from the phone clock used for freshness checks.
         latestFix = DetectionFusion.Fix(d.latitude, d.longitude, d.accuracyMeters, d.speedKmh, d.bearing, System.currentTimeMillis())
@@ -423,6 +429,8 @@ class DriveActivity : AppCompatActivity(), FrameAnalyzer.Listener {
         if (!LocationHelper.hasPrecise(this)) return Status.APPROXIMATE_ONLY
         if (!isLocationSwitchOn()) return Status.LOCATION_OFF
         val d = lastLocation ?: return Status.NO_GPS
+        val fresh = latestFix?.let { System.currentTimeMillis() - it.timestamp < MAX_FIX_AGE_MS } ?: false
+        if (!fresh) return Status.NO_GPS
         return if (d.accuracyMeters > 25f) Status.WEAK_GPS else Status.SCANNING
     }
 
@@ -462,7 +470,7 @@ class DriveActivity : AppCompatActivity(), FrameAnalyzer.Listener {
     }
 
     private fun openAppSettings() {
-        startActivity(Intent(AndroidSettings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)))
+        Ui.openAppSettings(this)
     }
 
     private fun debugSuffix(t: Throwable): String = if (BuildConfig.DEBUG) " (${t.message})" else ""
@@ -488,7 +496,10 @@ class DriveActivity : AppCompatActivity(), FrameAnalyzer.Listener {
 
     private fun markHazardManually() {
         val d = lastLocation
-        if (d == null || d.accuracyMeters > 50f) {
+        // A position from before a tunnel, or from before the app went to the background, is
+        // somewhere else entirely by now.
+        val fresh = latestFix?.let { System.currentTimeMillis() - it.timestamp < MAX_FIX_AGE_MS } ?: false
+        if (d == null || !fresh || d.accuracyMeters > 50f) {
             Toast.makeText(this, R.string.drive_wait_gps_to_mark, Toast.LENGTH_SHORT).show()
             return
         }
@@ -615,6 +626,7 @@ class DriveActivity : AppCompatActivity(), FrameAnalyzer.Listener {
         accelerometer.stop()
         locationHelper.stopLocationUpdates()
         latestFix = null
+        lastLocation = null
         analyzer?.paused = true
         super.onPause()
     }

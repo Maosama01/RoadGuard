@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:background="@color/surface"
         app:itemActiveIndicatorStyle="@style/Widget.RoadGuard.NavIndicator"
-        app:itemIconTint="@color/nav_item"
+        app:itemIconTint="@color/nav_icon"
         app:itemTextAppearanceActive="@style/TextAppearance.RoadGuard.LabelMedium"
         app:itemTextAppearanceInactive="@style/TextAppearance.RoadGuard.LabelMedium"
         app:itemTextColor="@color/nav_item"

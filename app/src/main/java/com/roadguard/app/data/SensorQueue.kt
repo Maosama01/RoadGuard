@@ -29,6 +29,14 @@ object SensorQueue {
             .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
             .build()
         WorkManager.getInstance(context)
-            .enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.APPEND_OR_REPLACE, request)
+            .enqueueUniqueWork(
+                WORK_NAME,
+                // REPLACE, not APPEND: a waiting job keeps its old network rule (Wi-Fi only) and its
+                // growing retry delay, so "Send now" or a new report would sit behind it for hours.
+                // Interrupting a running upload is harmless: the worker re-reads the queue and the
+                // server ignores repeats of the same clientId.
+                ExistingWorkPolicy.REPLACE,
+                request,
+            )
     }
 }

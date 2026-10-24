@@ -25,6 +25,36 @@ const TYPE_LABELS = {
 };
 const DAY = 86400000;
 
+/**
+ * Phone geocoders often return a Plus Code ("CX7C+2JQ"), "Unnamed Road" or a house number
+ * instead of a street. Those make useless titles and never match a contractor's road, so they
+ * are stored as no name at all.
+ */
+const PLUS_CODE = /^[23456789CFGHJMPQRVWX]{2,8}\+[23456789CFGHJMPQRVWX]{0,3}(\b|$)/i;
+function cleanRoadName(name) {
+  if (name === null || name === undefined) return null;
+  const n = String(name).replace(/\s+/g, ' ').trim();
+  if (!n) return null;
+  if (PLUS_CODE.test(n)) return null;
+  if (/^(unnamed road|unnamed|unknown|null|undefined|road|n\/a|na)$/i.test(n)) return null;
+  if (/^[\d\s,./-]+$/.test(n)) return null; // just a house or plot number
+  return n;
+}
+
+/** One-off repair for names saved before cleanRoadName existed. Returns rows changed. */
+function cleanStoredRoadNames(db) {
+  let changed = 0;
+  for (const table of ['hazards', 'reports', 'sensor_hits']) {
+    const names = db.prepare(`SELECT DISTINCT road_name AS n FROM ${table} WHERE road_name IS NOT NULL`).all();
+    const upd = db.prepare(`UPDATE ${table} SET road_name = ? WHERE road_name = ?`);
+    for (const { n } of names) {
+      const clean = cleanRoadName(n);
+      if (clean !== n) changed += upd.run(clean, n).changes;
+    }
+  }
+  return changed;
+}
+
 // accountability.js requires this module, so load it lazily to avoid a require cycle.
 const accountability = () => require('./accountability');
 
@@ -153,8 +183,16 @@ function recomputeHazard(db, hazardId, now = Date.now()) {
   const road = db
     .prepare(
       `SELECT road_name, COUNT(*) c FROM reports
-       WHERE hazard_id = ? AND road_name IS NOT NULL AND road_name <> '' AND lower(road_name) <> 'unknown'
-       GROUP BY road_name ORDER BY c DESC LIMIT 1`
+       WHERE hazard_id = ? AND road_name IS NOT NULL AND road_name <> ''
+       GROUP BY road_name ORDER BY c DESC`
+    )
+    .all(hazardId)
+    .find((r) => cleanRoadName(r.road_name));
+
+  const area = db
+    .prepare(
+      `SELECT area, COUNT(*) c FROM reports WHERE hazard_id = ? AND area IS NOT NULL AND area <> ''
+       GROUP BY area ORDER BY c DESC LIMIT 1`
     )
     .get(hazardId);
 
@@ -171,7 +209,8 @@ function recomputeHazard(db, hazardId, now = Date.now()) {
     severity_score: Math.round(sev * 10) / 10,
     severity_level: severityLevel(sev),
     cover_image: cover ? cover.image : h.cover_image,
-    road_name: road ? road.road_name : h.road_name,
+    road_name: road ? road.road_name : cleanRoadName(h.road_name),
+    area: area ? area.area : h.area,
     last_reported_at: Math.max(h.last_reported_at || 0, agg.last),
     first_reported_at: Math.min(h.first_reported_at || agg.first, agg.first),
   };
@@ -181,7 +220,7 @@ function recomputeHazard(db, hazardId, now = Date.now()) {
     `UPDATE hazards SET lat=@lat, lng=@lng, report_count=@report_count, unique_reporters=@unique_reporters,
        avg_confidence=@avg_confidence, max_shock=@max_shock, avg_speed=@avg_speed,
        severity_score=@severity_score, severity_level=@severity_level, cover_image=@cover_image,
-       road_name=@road_name, last_reported_at=@last_reported_at, first_reported_at=@first_reported_at,
+       road_name=@road_name, area=@area, last_reported_at=@last_reported_at, first_reported_at=@first_reported_at,
        priority=@priority, updated_at=${now}
      WHERE id=@id`
   ).run(updated);
@@ -227,10 +266,10 @@ function insertSighting(db, user, hazard, r, detectedAt, now) {
   const info = db
     .prepare(
       `INSERT INTO reports (client_id, hazard_id, user_id, type, source, lat, lng, accuracy, heading, speed,
-                            confidence, shock, severity_score, severity_level, road_name, image, note,
+                            confidence, shock, severity_score, severity_level, road_name, area, image, note,
                             detected_at, created_at)
        VALUES (@clientId, @hazardId, @userId, @type, @source, @latitude, @longitude, @accuracy, @heading, @speed,
-               @confidence, @shock, @severityScore, @severityLevel, @roadName, @image, @note, @detectedAt, @now)`
+               @confidence, @shock, @severityScore, @severityLevel, @roadName, @area, @image, @note, @detectedAt, @now)`
     )
     .run({
       clientId: r.clientId || null,
@@ -247,7 +286,8 @@ function insertSighting(db, user, hazard, r, detectedAt, now) {
       shock: r.shock || 0,
       severityScore: r.severityScore,
       severityLevel: severityLevel(r.severityScore),
-      roadName: r.roadName || null,
+      roadName: cleanRoadName(r.roadName),
+      area: cleanRoadName(r.area),
       image: r.image || null,
       note: r.note || null,
       detectedAt,
@@ -284,6 +324,34 @@ function afterSighting(db, hazardId, actorId, detectedAt, now) {
 }
 
 /**
+ * How far apart two sightings can be and still be the same hazard. GPS error and the second or
+ * two it takes to react (5 to 15 m at city speeds) both widen it; a manual tap is always late.
+ */
+function mergeRadiusFor(r) {
+  const base = config.hazard.mergeRadiusMeters;
+  const acc = Number.isFinite(r.accuracy) ? r.accuracy : 10;
+  const radius = Math.min(30, Math.max(base, acc * 1.5));
+  return r.source === 'manual' ? radius + 10 : radius;
+}
+
+/**
+ * A driver tapping "Report" again within a minute, close to their last report, is pointing at
+ * the same pothole (or one right next to it), not finding a new one.
+ */
+function sameTapBurst(db, user, r, now) {
+  if (r.source !== 'manual') return null;
+  const last = db
+    .prepare(
+      `SELECT r.lat AS lat, r.lng AS lng, r.hazard_id AS hazardId FROM reports r JOIN hazards h ON h.id = r.hazard_id
+       WHERE r.user_id = ? AND r.source = 'manual' AND r.created_at > ? AND h.type = ?
+       ORDER BY r.created_at DESC LIMIT 1`
+    )
+    .get(user.id, now - 60000, r.type);
+  if (!last || distanceMeters(last.lat, last.lng, r.latitude, r.longitude) > 50) return null;
+  return db.prepare('SELECT * FROM hazards WHERE id = ?').get(last.hazardId);
+}
+
+/**
  * Ingests one sighting. Idempotent on clientId: the app retries uploads from its offline queue,
  * so the same sighting may arrive twice.
  */
@@ -298,7 +366,7 @@ function ingestReport(db, user, r, now = Date.now()) {
     }
 
     const detectedAt = Math.min(r.timestamp || now, now);
-    let hazard = findNearbyHazard(db, r.type, r.latitude, r.longitude);
+    let hazard = sameTapBurst(db, user, r, now) || findNearbyHazard(db, r.type, r.latitude, r.longitude, mergeRadiusFor(r));
     let isNewHazard = false;
 
     if (!hazard) {
@@ -308,7 +376,7 @@ function ingestReport(db, user, r, now = Date.now()) {
                                 last_reported_at, updated_at)
            VALUES (?, ?, ?, ?, 'reported', ?, ?, ?, ?)`
         )
-        .run(r.type, r.latitude, r.longitude, r.roadName || null, user.id, detectedAt, detectedAt, now);
+        .run(r.type, r.latitude, r.longitude, cleanRoadName(r.roadName), user.id, detectedAt, detectedAt, now);
       hazard = db.prepare('SELECT * FROM hazards WHERE id = ?').get(info.lastInsertRowid);
       isNewHazard = true;
       addEvent(db, hazard.id, user.id, 'created', { to: 'reported', at: now });
@@ -505,6 +573,9 @@ function serializeReport(r, base, hazard) {
 
 module.exports = {
   DAY,
+  cleanRoadName,
+  cleanStoredRoadNames,
+  mergeRadiusFor,
   STATUSES,
   OPEN_STATUSES,
   TYPES,

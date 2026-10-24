@@ -352,9 +352,19 @@ class HazardDetailActivity : AppCompatActivity() {
                 "vote_present" -> getString(R.string.timeline_vote_present)
                 "community_resolved" -> getString(R.string.timeline_community_resolved)
                 "reopened" -> getString(R.string.timeline_reopened)
-                else -> e.type ?: getString(R.string.timeline_update)
+                "auto_assigned" -> getString(R.string.timeline_auto_assigned)
+                "escalated" -> getString(R.string.timeline_escalated)
+                "repaired" -> getString(R.string.timeline_repaired)
+                else -> getString(R.string.timeline_update)
             }
-            row.txtWhen.text = getString(R.string.timeline_when, Ui.timeAgo(this, e.createdAt), e.actor ?: getString(R.string.app_name))
+            // The server names actors in English; translate the generic ones.
+            val actor = when (e.actor) {
+                null, "RoadGuard" -> getString(R.string.app_name)
+                "A driver" -> getString(R.string.timeline_actor_driver)
+                "City team" -> getString(R.string.timeline_actor_city)
+                else -> e.actor
+            }
+            row.txtWhen.text = getString(R.string.timeline_when, Ui.timeAgo(this, e.createdAt), actor)
             row.txtNote.visible(!e.note.isNullOrBlank())
             row.txtNote.text = e.note
             row.line.visible(i < list.size - 1)

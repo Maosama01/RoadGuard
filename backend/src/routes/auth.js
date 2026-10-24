@@ -27,6 +27,16 @@ module.exports = function authRoutes(db) {
     city: z.string().trim().max(60).optional(),
   });
 
+  // Guest sign-up runs once per install, automatically. A campus or office network puts
+  // hundreds of phones behind one IP, so it gets a much higher ceiling than password attempts.
+  const guestLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 600,
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: { success: false, message: 'Too many new installs from this network. Please try again in a few minutes.' },
+  });
+
   const respond = (res, user, status = 200) =>
     res.status(status).json({ success: true, token: signToken(user), user: publicUser(user) });
 
@@ -70,7 +80,7 @@ module.exports = function authRoutes(db) {
   });
 
   /** Zero-friction start: one account per device, upgradeable later via /register. */
-  router.post('/guest', limiter, (req, res) => {
+  router.post('/guest', guestLimiter, (req, res) => {
     const body = parse(
       z.object({ deviceId: z.string().trim().min(8).max(100), name: z.string().trim().max(60).optional() }),
       req.body,

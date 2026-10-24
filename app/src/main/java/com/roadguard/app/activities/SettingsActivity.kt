@@ -109,7 +109,9 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        // Server
+        // Server: drivers never need this, and changing it signs them out. Debug builds only.
+        binding.txtServerSection.visible(BuildConfig.DEBUG)
+        binding.cardServer.visible(BuildConfig.DEBUG)
         binding.btnChangeServer.setOnClickListener {
             ServerDialog.show(this) {
                 showServer()
@@ -125,20 +127,7 @@ class SettingsActivity : AppCompatActivity() {
 
         // Account
         binding.btnCreateAccount.setOnClickListener { startActivity(LoginActivity.upgradeIntent(this)) }
-        binding.btnSignOut.setOnClickListener {
-            MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.sign_out_title)
-                .setMessage(if (Session.isGuest) R.string.sign_out_message_guest else R.string.sign_out_message)
-                .setNegativeButton(R.string.action_cancel, null)
-                .setPositiveButton(R.string.action_sign_out) { _, _ ->
-                    Session.signOut()
-                    startActivity(
-                        Intent(this, LoginActivity::class.java)
-                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    )
-                }
-                .show()
-        }
+        binding.btnSignOut.setOnClickListener { com.roadguard.app.data.SignOut.confirm(this, lifecycleScope) }
 
         binding.txtAbout.text = getString(R.string.settings_about, BuildConfig.VERSION_NAME)
     }

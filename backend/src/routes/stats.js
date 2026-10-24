@@ -7,13 +7,17 @@ const H = require('../hazards');
 const A = require('../accountability');
 const { roadHealth } = require('../coverage');
 
-const DAY = 86400000;
+const config = require('../config');
 
+const DAY = 86400000;
+const TZ_MS = config.timeZoneOffsetMinutes * 60000;
+
+/** Midnight in the city's time zone (IST), not the server's (the cloud server runs on UTC). */
 function startOfDay(t) {
-  const d = new Date(t);
-  d.setHours(0, 0, 0, 0);
-  return d.getTime();
+  return Math.floor((t + TZ_MS) / DAY) * DAY - TZ_MS;
 }
+/** "2026-10-24" for a time, in the city's time zone. */
+const localDate = (t) => new Date(t + TZ_MS).toISOString().slice(0, 10);
 
 module.exports = function statsRoutes(db) {
   const router = express.Router();
@@ -75,7 +79,7 @@ module.exports = function statsRoutes(db) {
       .prepare(`SELECT (first_reported_at - ?) / ${DAY} AS d, COUNT(*) n FROM hazards WHERE first_reported_at >= ? GROUP BY d`)
       .all(since, since);
     const trend = Array.from({ length: days }, (_, i) => ({
-      date: new Date(since + i * DAY + DAY / 2).toISOString().slice(0, 10),
+      date: localDate(since + i * DAY + DAY / 2),
       reports: 0,
       newHazards: 0,
       resolved: 0,
@@ -140,17 +144,16 @@ module.exports = function statsRoutes(db) {
     const rank = db.prepare('SELECT COUNT(*) + 1 n FROM users WHERE points > ? AND is_guest = 0').get(user.points).n;
     const days = db
       .prepare(
-        `SELECT DISTINCT date(detected_at / 1000, 'unixepoch', 'localtime') d FROM reports
+        `SELECT DISTINCT date((detected_at + ?) / 1000, 'unixepoch') d FROM reports
          WHERE user_id = ? ORDER BY d DESC LIMIT 60`
       )
-      .all(uid)
+      .all(TZ_MS, uid)
       .map((r) => r.d);
-    // Consecutive active days ending today or yesterday.
+    // Consecutive active days ending today or yesterday (city time zone).
     let streak = 0;
-    const today = new Date();
+    const nowMs = Date.now();
     for (let i = 0; i < 60; i++) {
-      const d = new Date(today.getTime() - i * DAY);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const key = localDate(nowMs - i * DAY);
       if (days.includes(key)) streak++;
       else if (i > 0 || streak > 0) break;
     }
@@ -184,7 +187,7 @@ module.exports = function statsRoutes(db) {
   });
 
   router.get('/leaderboard', (req, res) => {
-    const limit = Math.min(Number(req.query.limit) || 20, 100);
+    const limit = Math.min(Math.max(Math.floor(Number(req.query.limit)) || 20, 1), 100);
     const rows = db
       .prepare(
         `SELECT u.id, u.name, u.city, u.points, u.is_guest,

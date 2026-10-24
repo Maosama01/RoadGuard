@@ -36,6 +36,8 @@ class LoginActivity : AppCompatActivity() {
 
     companion object {
         private const val EXTRA_UPGRADE = "upgrade"
+        private const val STATE_FORM = "form"
+        private const val STATE_REGISTER = "register"
 
         /** Opens straight into "create account" for a guest who wants to keep their points. */
         fun upgradeIntent(context: Context) =
@@ -100,7 +102,20 @@ class LoginActivity : AppCompatActivity() {
             binding.txtHeroTitle.setText(R.string.login_upgrade_title)
             binding.txtHeroBody.setText(R.string.login_upgrade_body)
             showForm(register = true)
+        } else if (savedInstanceState?.getBoolean(STATE_FORM) == true) {
+            // Rotation or a language switch: stay on the form the person was filling in.
+            showForm(register = savedInstanceState.getBoolean(STATE_REGISTER))
+        } else if (Session.consumeExpiredNotice()) {
+            showForm(register = false)
+            binding.txtError.setText(R.string.login_session_expired)
+            binding.txtError.visible(true)
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(STATE_FORM, binding.groupForm.visibility == android.view.View.VISIBLE)
+        outState.putBoolean(STATE_REGISTER, registerMode)
     }
 
     private fun bindStep(
@@ -187,8 +202,8 @@ class LoginActivity : AppCompatActivity() {
         // A guest upgrading keeps their token so the server converts that account in place.
         if (registerMode && !isUpgrade) Session.signOut()
         authenticate {
-            if (registerMode) apiCall { register(RegisterRequest(name, email, password)) }
-            else apiCall { login(LoginRequest(email, password)) }
+            if (registerMode) apiCall(reauth = false) { register(RegisterRequest(name, email, password)) }
+            else apiCall(reauth = false) { login(LoginRequest(email, password)) }
         }
     }
 
@@ -199,11 +214,17 @@ class LoginActivity : AppCompatActivity() {
     private fun startAsGuest() {
         setBusy(true)
         lifecycleScope.launch {
-            val r = apiCall { guest(GuestRequest(Session.deviceId)) }
+            val r = apiCall(reauth = false) { guest(GuestRequest(Session.deviceId)) }
             val token = (r as? ApiResult.Ok)?.value?.token
             val user = (r as? ApiResult.Ok)?.value?.user
             if (token != null && user != null) {
                 Session.saveAuth(token, user)
+            } else if (r is ApiResult.Err && !r.offline) {
+                // The server answered with a real error (busy, rate limit): say so instead of
+                // pretending there's no connection.
+                setBusy(false)
+                showError(r.message)
+                return@launch
             } else {
                 Session.offlineGuest = true
                 Toast.makeText(this@LoginActivity, R.string.login_offline_started, Toast.LENGTH_LONG).show()
@@ -236,9 +257,13 @@ class LoginActivity : AppCompatActivity() {
                         showError(r.value.message ?: getString(R.string.login_failed))
                     }
                 }
-                is ApiResult.Err -> showError(
-                    if (r.offline && BuildConfig.DEBUG) getString(R.string.login_error_offline, r.message, Session.serverUrl) else r.message
-                )
+                is ApiResult.Err -> {
+                    showError(
+                        if (r.offline && BuildConfig.DEBUG) getString(R.string.login_error_offline, r.message, Session.serverUrl) else r.message
+                    )
+                    // Upgrading a guest with an email that already has an account: let them sign in instead.
+                    if (r.code == 409) binding.btnSwitchMode.visible(true)
+                }
             }
             setBusy(false)
         }

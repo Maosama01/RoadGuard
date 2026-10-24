@@ -66,6 +66,9 @@
     if (d <= 0) return 'today';
     return d === 1 ? 'tomorrow' : `in ${d} days`;
   }
+  /** Title for a hazard: its road, or where it is when the phone could not name the road. */
+  const roadLabel = (h) => h.roadName || (h.area ? `Near ${h.area}` : 'Unnamed road');
+  const coords = (h) => `${Number(h.latitude).toFixed(5)}, ${Number(h.longitude).toFixed(5)}`;
   const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
   const fmtKm = (km) => (km == null ? '–' : km >= 100 ? Math.round(km).toLocaleString() : (Math.round(km * 10) / 10).toLocaleString());
 
@@ -80,6 +83,7 @@
 
   // ---------------------------------------------------------------- api
   let token = store.get('rg_token');
+  let refreshTimer;
   async function api(path, opts = {}) {
     const headers = { Accept: 'application/json', ...(opts.headers || {}) };
     if (token) headers.Authorization = `Bearer ${token}`;
@@ -127,8 +131,12 @@
     setTimeout(() => $('#loginEmail').focus(), 50);
   }
   function signOut() {
+    const wasIn = !!state.me;
     token = null;
     store.del('rg_token');
+    clearInterval(refreshTimer);
+    // A fresh page is the only reliable way to drop every filter, layer and open panel.
+    if (wasIn) { window.location.reload(); return; }
     showLogin();
   }
 
@@ -194,7 +202,7 @@
         fillColor: color,
         fillOpacity: done ? 0.15 : 0.9,
       });
-      m.bindTooltip(`${esc(h.roadName || TYPE_WORD[h.type])}: ${esc(SEV_WORD[h.severityLevel])}`, { className: 'rg-tip', direction: 'top', offset: [0, -6] });
+      m.bindTooltip(`${esc(h.roadName || TYPE_WORD[h.type])} #${h.id}: ${esc(SEV_WORD[h.severityLevel])}`, { className: 'rg-tip', direction: 'top', offset: [0, -6] });
       m.on('click', () => select(h.id, false));
       m.addTo(markerLayer);
       markers.set(h.id, m);
@@ -244,6 +252,38 @@
     if (!cells.length) toast('No drives recorded in the last 30 days yet.');
   }
   $('#coverageBtn').addEventListener('click', () => toggleCoverage().catch((e) => toast(e.message)));
+
+  /**
+   * Pocket-mode jolts still waiting for more evidence (more drivers, or more days). Not hazards
+   * yet: they show the pilot is collecting data, and where to look next.
+   */
+  let joltLayer;
+  async function toggleJolts() {
+    state.jolts = !state.jolts;
+    $('#joltsBtn').setAttribute('aria-pressed', String(state.jolts));
+    $('#joltsLegend').hidden = !state.jolts;
+    if (joltLayer) { map.removeLayer(joltLayer); joltLayer = null; }
+    if (!state.jolts) return;
+    const { items } = await api('/api/sensor-hits/pending?days=30');
+    joltLayer = L.layerGroup();
+    for (const c of items) {
+      const left = [];
+      if (c.drivers < c.needs.drivers) left.push(plural(c.needs.drivers - c.drivers, 'more driver', 'more drivers'));
+      if (c.days < c.needs.days) left.push(plural(c.needs.days - c.days, 'more day', 'more days'));
+      L.circleMarker([c.latitude, c.longitude], {
+        radius: 5 + Math.min(c.jolts, 8), color: '#fff', weight: 1.5, fillColor: '#7A5AF8', fillOpacity: 0.85,
+      })
+        .bindTooltip(
+          `<b>${esc(c.roadName || 'Jolt')}</b><br>Felt ${plural(c.jolts, 'time', 'times')} by ${plural(c.drivers, 'driver', 'drivers')} on ${plural(c.days, 'day', 'days')}, hardest ${c.maxShock} m/s²<br>` +
+            `Last ${esc(ago(c.lastAt))}. Becomes a rough patch with ${left.join(' or ')}.`,
+          { className: 'rg-tip', direction: 'top', offset: [0, -6] }
+        )
+        .addTo(joltLayer);
+    }
+    joltLayer.addTo(map);
+    toast(items.length ? `${plural(items.length, 'spot', 'spots')} felt in pocket mode, waiting for confirmation` : 'No unconfirmed jolts in the last 30 days.');
+  }
+  $('#joltsBtn').addEventListener('click', () => toggleJolts().catch((e) => toast(e.message)));
   $('#fitBtn').addEventListener('click', () => {
     const pts = state.items.map((h) => [h.latitude, h.longitude]);
     if (pts.length) map.fitBounds(L.latLngBounds(pts).pad(0.15), { maxZoom: 16 });
@@ -256,7 +296,7 @@
       ['Open', totals.open, ''],
       ['Critical', totals.critical, totals.critical ? 'is-critical' : ''],
       ['Overdue', totals.overdue || 0, totals.overdue ? 'is-critical' : ''],
-      ['New today', totals.reportsToday, ''],
+      ['Sightings today', totals.reportsToday, ''],
       ['Fixed rate', `${totals.resolutionRate}%`, ''],
       ['Avg. time to fix', totals.avgResolutionHours == null ? '–' : totals.avgResolutionHours < 48 ? `${Math.round(totals.avgResolutionHours)} h` : `${Math.round(totals.avgResolutionHours / 24)} d`, ''],
     ];
@@ -324,7 +364,7 @@
           <span class="q-edge${done ? ' is-done' : ''}" style="--c:${SEV_VAR[h.severityLevel]}"></span>
           <span class="q-prio">${done ? '–' : Math.round(h.priority)}<small>${done ? '' : 'priority'}</small></span>
           <span class="q-main">
-            <span class="q-title">${esc(h.roadName || 'Unnamed road')}</span>
+            <span class="q-title">${esc(roadLabel(h))}${h.roadName ? '' : `<small class="q-coords">${coords(h)}</small>`}</span>
             <span class="q-sub"><span>${TYPE_WORD[h.type]}, ${SEV_WORD[h.severityLevel].toLowerCase()}</span><span>${plural(h.uniqueReporters, 'driver', 'drivers')}</span><span>${done ? `open ${openFor(h)}` : `waiting ${openFor(h)}`}</span></span>
             <span class="q-flags"><span class="pill pill-status-${h.status}">${STATUS_WORD[h.status]}</span>${flags.join('')}</span>
           </span>
@@ -357,8 +397,10 @@
     if (!b) return;
     $$('#statusSeg button').forEach((x) => { x.classList.toggle('is-on', x === b); x.setAttribute('aria-checked', String(x === b)); });
     state.status = b.dataset.status;
-    if (b.dataset.status === 'resolved' && state.sort === 'priority') { state.sort = 'recent'; $('#sortSel').value = 'recent'; }
-    if (b.dataset.status === 'overdue' && state.sort === 'recent') { state.sort = 'priority'; $('#sortSel').value = 'priority'; }
+    const closedView = ['resolved', 'all'].includes(b.dataset.status);
+    if (closedView && state.sort === 'priority') { state.sort = 'recent'; $('#sortSel').value = 'recent'; }
+    if (!closedView && state.sort === 'recent' && state.autoSorted) { state.sort = 'priority'; $('#sortSel').value = 'priority'; }
+    state.autoSorted = closedView;
     loadQueue(true).catch((ex) => toast(ex.message));
   });
   $('#sevToggles').addEventListener('click', (e) => {
@@ -370,7 +412,7 @@
     loadQueue().catch((ex) => toast(ex.message));
   });
   $('#typeSel').addEventListener('change', (e) => { state.type = e.target.value; loadQueue(true).catch((ex) => toast(ex.message)); });
-  $('#sortSel').addEventListener('change', (e) => { state.sort = e.target.value; loadQueue().catch((ex) => toast(ex.message)); });
+  $('#sortSel').addEventListener('change', (e) => { state.sort = e.target.value; state.autoSorted = false; loadQueue().catch((ex) => toast(ex.message)); });
   $('#inViewChk').addEventListener('change', (e) => { state.inView = e.target.checked; loadQueue().catch((ex) => toast(ex.message)); });
   let searchTimer;
   $('#search').addEventListener('input', (e) => {
@@ -474,8 +516,8 @@
     $('#detail').innerHTML = `
       <div class="d-head">
         <div>
-          <h2>${esc(h.roadName || 'Unnamed road')}</h2>
-          <p>${TYPE_WORD[h.type]} #${h.id}, first seen ${esc(ago(h.firstReportedAt))}</p>
+          <h2>${esc(roadLabel(h))}</h2>
+          <p>${TYPE_WORD[h.type]} #${h.id}, first seen ${esc(ago(h.firstReportedAt))}${h.roadName ? '' : `<br>${coords(h)}`}</p>
         </div>
         <button class="d-close" type="button" aria-label="Close">×</button>
       </div>
@@ -643,7 +685,11 @@
     if (!ok) throw new Error('Could not copy. Your browser blocked the clipboard.');
   }
 
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && state.selected) closeDetail(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape' || !state.selected) return;
+    if (e.target.closest && e.target.closest('input, textarea, select')) { e.target.blur(); return; }
+    closeDetail();
+  });
 
   // ---------------------------------------------------------------- insights
   function barChart(trend) {
@@ -1004,7 +1050,8 @@
       const p = queueParams();
       p.delete('limit');
       const res = await fetch(`/api/hazards/export.csv?${p}`, { headers: { Authorization: `Bearer ${token}` } });
-      if (!res.ok) throw new Error('Export failed.');
+      if (res.status === 401) { signOut(); return; }
+      if (!res.ok) throw new Error('Export failed. Please try again.');
       const blob = await res.blob();
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
@@ -1017,7 +1064,6 @@
   });
 
   // ---------------------------------------------------------------- start
-  let refreshTimer;
   async function start(user) {
     state.me = user;
     $('#login').hidden = true;

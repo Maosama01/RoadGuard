@@ -261,8 +261,9 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Server -->
+            <!-- Server: a developer setting, shown only in debug builds -->
             <TextView
+                android:id="@+id/txtServerSection"
                 style="@style/TextAppearance.RoadGuard.Section"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -271,6 +272,7 @@
                 android:text="@string/settings_section_server" />
 
             <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardServer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 

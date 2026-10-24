@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS ${name} (
   severity_score  REAL NOT NULL DEFAULT 0,
   severity_level  TEXT NOT NULL DEFAULT 'LOW',
   road_name       TEXT,
+  area            TEXT,
   image           TEXT,
   note            TEXT,
   detected_at     INTEGER NOT NULL,
@@ -260,6 +261,7 @@ const ADDED_COLUMNS = {
     under_warranty: 'INTEGER NOT NULL DEFAULT 0',
   },
   sensor_hits: { road_name: 'TEXT', hazard_id: 'INTEGER REFERENCES hazards(id)' },
+  reports: { area: 'TEXT' },
 };
 
 function ensureColumns(db) {

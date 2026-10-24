@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The selected icon sits on the lane-yellow indicator, so it stays dark in both themes. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:color="@color/lane_ink" android:state_checked="true" />
+    <item android:color="@color/muted" />
+</selector>

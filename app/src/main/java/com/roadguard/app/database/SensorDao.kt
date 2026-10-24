@@ -34,4 +34,10 @@ interface SensorDao {
 
     @Query("DELETE FROM pending_drives WHERE clientId = :clientId")
     suspend fun deleteDrive(clientId: String): Int
+
+    @Query("DELETE FROM pending_hits")
+    suspend fun deleteAllHits(): Int
+
+    @Query("DELETE FROM pending_drives")
+    suspend fun deleteAllDrives(): Int
 }

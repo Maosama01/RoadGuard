@@ -98,6 +98,7 @@
       <div class="map-wrap">
         <div id="map" class="map" aria-label="Hazard map"></div>
         <div class="map-tools">
+          <button id="joltsBtn" class="chip" aria-pressed="false" type="button" title="Pocket-mode jolts not yet confirmed as a hazard">Jolts</button>
           <button id="coverageBtn" class="chip" aria-pressed="false" type="button">Coverage</button>
           <button id="heatBtn" class="chip" aria-pressed="false" type="button">Heat</button>
           <button id="fitBtn" class="chip" type="button">Fit all</button>
@@ -109,6 +110,7 @@
           <span><i class="dot sev-bg-low"></i>Low</span>
           <span><i class="dot dot-done"></i>Fixed</span>
           <span id="coverageLegend" hidden><i class="sq-cov"></i>Scanned in the last 30 days</span>
+          <span id="joltsLegend" hidden><i class="dot dot-jolt"></i>Jolt, not confirmed yet</span>
           <span class="legend-note">Bigger circle, more drivers</span>
         </div>
       </div>

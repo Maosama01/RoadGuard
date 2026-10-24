@@ -28,6 +28,11 @@ class AlertEngine(private val config: Config = Config()) {
         /** Must get this far away again to finish the pass. */
         val passExitMeters: Double = 30.0,
         val passShockWindowMs: Long = 2_500,
+        /**
+         * Below this speed a pothole can't be felt (the jolt detector ignores slow driving), so
+         * crawling over one in traffic must not count as "drove over it, nothing there".
+         */
+        val minPassSpeedKmh: Float = 15f,
     )
 
     data class KnownHazard(
@@ -37,6 +42,8 @@ class AlertEngine(private val config: Config = Config()) {
         val longitude: Double,
         val severityLevel: String,
         val reportCount: Int,
+        /** For the spoken and on-screen warning ("on Rajpur Road"). */
+        val roadName: String? = null,
     )
 
     data class Alert(val hazard: KnownHazard, val distanceMeters: Double)
@@ -44,12 +51,14 @@ class AlertEngine(private val config: Config = Config()) {
     private var hazards: List<KnownHazard> = emptyList()
     private val alertedAt = HashMap<Long, Long>()
     private val approaching = HashMap<Long, Long>() // hazard id -> time of closest approach
+    private val tooSlow = HashSet<Long>() // hazards crossed below minPassSpeedKmh on this approach
     private var lastShockAt = Long.MIN_VALUE / 2
 
     fun setHazards(list: List<KnownHazard>) {
         hazards = list
         val ids = list.map { it.id }.toSet()
         approaching.keys.retainAll(ids)
+        tooSlow.retainAll(ids)
     }
 
     val hazardCount: Int get() = hazards.size
@@ -85,14 +94,16 @@ class AlertEngine(private val config: Config = Config()) {
      * Returns ids of hazards the car just drove over without any jolt nearby in time.
      * Call on every location update.
      */
-    fun checkCleanPasses(lat: Double, lng: Double, now: Long): List<Long> {
+    fun checkCleanPasses(lat: Double, lng: Double, now: Long, speedKmh: Float = Float.MAX_VALUE): List<Long> {
         val passed = mutableListOf<Long>()
         for (h in hazards) {
             val d = GeoUtils.distanceMeters(lat, lng, h.latitude, h.longitude)
             if (d <= config.passRadiusMeters) {
                 approaching[h.id] = now
+                if (speedKmh < config.minPassSpeedKmh) tooSlow += h.id
             } else if (d >= config.passExitMeters) {
                 val at = approaching.remove(h.id) ?: continue
+                if (tooSlow.remove(h.id)) continue
                 val joltNearby = lastShockAt >= at - config.passShockWindowMs &&
                     lastShockAt <= at + config.passShockWindowMs
                 if (!joltNearby) passed += h.id

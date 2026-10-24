@@ -1,8 +1,8 @@
 {
   "model": "best.tflite",
-  "detectThreshold": 0.1,
-  "reportThreshold": 0.2,
-  "singleHitThreshold": 0.3,
+  "detectThreshold": 0.25,
+  "reportThreshold": 0.45,
+  "singleHitThreshold": 0.6,
   "calibratedOn": "RDD2020 India validation split",
   "validation": {
     "AP50": 0.4065,
@@ -10,5 +10,6 @@
       "f1": 0.464,
       "threshold": 0.1
     }
-  }
+  },
+  "fieldTuning": "October 2026: the best-F1 point (0.1 / 0.2 / 0.3) filed reports from a phone standing still indoors and from ordinary cracked tarmac. Raised so a report without a jolt needs 0.45 and a single frame 0.6; a jolt still confirms anything above 0.25. Lower again only after checking real drives."
 }

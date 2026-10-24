@@ -27,6 +27,7 @@ import androidx.core.content.ContextCompat
 import com.roadguard.app.R
 import com.roadguard.app.RoadGuardApp
 import com.roadguard.app.activities.HomeActivity
+import com.roadguard.app.core.AlertEngine
 import com.roadguard.app.core.BumpDetector
 import com.roadguard.app.core.GeoUtils
 import com.roadguard.app.data.SensorQueue
@@ -80,6 +81,10 @@ class PocketScanService : Service(), SensorEventListener {
         private const val MAX_FIX_AGE_MS = 3_000L
         private const val MAX_HIT_ACCURACY_M = 30f
         private const val WAKE_LOCK_MS = 6 * 60 * 60 * 1000L
+        private const val MAX_SPEED_AGE_MS = 3_000L
+        private const val ALERT_CHANNEL_ID = "roadguard-hazard-alerts"
+        private const val ALERT_NOTIFICATION_ID = 4102
+        private const val ALERT_VISIBLE_MS = 45_000L
         private const val TICK_MS = 30_000L
         private const val NOTIFY_EVERY_MS = 10_000L
         private const val UPLOAD_EVERY_HITS = 25
@@ -132,10 +137,18 @@ class PocketScanService : Service(), SensorEventListener {
     private var lastUploadAt = 0L
     private var lastNotifyAt = 0L
     private var lastHitSave: Job? = null
+    private var wakeLockAt = 0L
+
+    private fun renewWakeLock(lock: PowerManager.WakeLock) {
+        lock.acquire(WAKE_LOCK_MS)
+        wakeLockAt = System.currentTimeMillis()
+    }
 
     private val tick = object : Runnable {
         override fun run() {
             driveLog?.maybeCheckpoint()
+            // The wake lock has a time limit as a safety net; renew it for drives longer than that.
+            wakeLock?.let { if (!it.isHeld || System.currentTimeMillis() - wakeLockAt > WAKE_LOCK_MS / 2) renewWakeLock(it) }
             if (hitsSinceUpload > 0 && System.currentTimeMillis() - lastUploadAt >= UPLOAD_EVERY_MS) scheduleUpload()
             publish()
             main.postDelayed(this, TICK_MS)
@@ -191,7 +204,7 @@ class PocketScanService : Service(), SensorEventListener {
         detector.threshold = Settings.shockThreshold
 
         driveLog = DriveLog(this, DriveLog.MODE_POCKET)
-        alerts = HazardAlerts(this, scope, onHazardsChanged = { publish() })
+        alerts = HazardAlerts(this, scope, onAlert = { showHazardAlert(it) }, onHazardsChanged = { publish() })
         locationHelper = LocationHelper(this) { onLocation(it) }.also { it.startLocationUpdates() }
 
         val sm = getSystemService(Context.SENSOR_SERVICE) as? SensorManager
@@ -201,14 +214,14 @@ class PocketScanService : Service(), SensorEventListener {
             sm.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME)
         } else {
             Log.w(TAG, "No accelerometer: pocket mode only records the route and gives warnings")
+            alerts?.canFeelJolts = false
         }
 
         // The phone is in a pocket with the screen off; keep the CPU awake for the sensors.
         val pm = getSystemService(Context.POWER_SERVICE) as? PowerManager
         wakeLock = pm?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "RoadGuard:pocket")?.apply {
             setReferenceCounted(false)
-            acquire(WAKE_LOCK_MS)
-        }
+        }?.also { renewWakeLock(it) }
 
         _state.value = State(running = true, startedAt = now)
         main.postDelayed(tick, TICK_MS)
@@ -256,7 +269,9 @@ class PocketScanService : Service(), SensorEventListener {
     override fun onSensorChanged(event: SensorEvent) {
         if (event.sensor.type != Sensor.TYPE_ACCELEROMETER || event.values.size < 3) return
         val sensorMs = event.timestamp / 1_000_000L
-        val hit = detector.onSample(event.values[0], event.values[1], event.values[2], sensorMs, speedKmh) ?: return
+        // A speed from before GPS dropped out (tunnel, flyover) is not the speed now.
+        val speed = if (System.currentTimeMillis() - lastFixAt > MAX_SPEED_AGE_MS) 0f else speedKmh
+        val hit = detector.onSample(event.values[0], event.values[1], event.values[2], sensorMs, speed) ?: return
         // Sensor clock (time since boot) to wall clock.
         val ageMs = ((SystemClock.elapsedRealtimeNanos() - event.timestamp) / 1_000_000L).coerceIn(0L, 2_000L)
         val at = System.currentTimeMillis() - ageMs - (sensorMs - hit.timestamp)
@@ -266,11 +281,16 @@ class PocketScanService : Service(), SensorEventListener {
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
 
     private fun onJolt(magnitude: Float, at: Long) {
-        jolts++
         alerts?.onShock(at)
         val fix = lastFix
         val age = at - lastFixAt
+        if (fix == null || age !in -MAX_FIX_AGE_MS..MAX_FIX_AGE_MS || fix.accuracyMeters > MAX_HIT_ACCURACY_M) {
+            // Without a good position the city can't use it, so it isn't counted on screen either
+            // (the count used to include these, and then the dashboard showed fewer).
+            Log.i(TAG, "Jolt felt but not recorded: GPS ${fix?.accuracyMeters ?: "none"} m, ${age / 1000} s old")
+        }
         if (fix != null && age in -MAX_FIX_AGE_MS..MAX_FIX_AGE_MS && fix.accuracyMeters <= MAX_HIT_ACCURACY_M) {
+            jolts++
             // GPS updates once a second; move the fix forward to where the car was at the jolt.
             var lat = fix.latitude
             var lng = fix.longitude
@@ -329,6 +349,49 @@ class PocketScanService : Service(), SensorEventListener {
             knownHazards = if (a != null && a.hasLoaded) a.hazardCount else null,
         )
         updateNotification(force = false)
+    }
+
+    /**
+     * The phone is in a pocket, so the spoken warning is the main one. This pop-up carries the
+     * same details for a glance at the lock screen or a watch, and clears itself once passed.
+     */
+    private fun showHazardAlert(alert: AlertEngine.Alert) {
+        if (Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) return
+        val res = Ui.localized(this)
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        nm.createNotificationChannel(
+            NotificationChannel(ALERT_CHANNEL_ID, res.getString(R.string.hazard_alert_channel_name), NotificationManager.IMPORTANCE_HIGH).apply {
+                description = res.getString(R.string.hazard_alert_channel_description)
+                // The voice and the vibration pattern already alert; the pop-up stays quiet.
+                setSound(null, null)
+                enableVibration(false)
+            }
+        )
+        val h = alert.hazard
+        val details = listOfNotNull(
+            h.roadName?.let { res.getString(R.string.alert_speech_road, it) },
+            if (h.reportCount > 1) res.resources.getQuantityString(R.plurals.alert_speech_drivers, h.reportCount, h.reportCount) else null,
+        ).joinToString(" ")
+        val open = packageManager.getLaunchIntentForPackage(packageName)
+            ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED)
+            ?: Intent(this, HomeActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        val n = NotificationCompat.Builder(this, ALERT_CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_pocket)
+            .setContentTitle(res.getString(R.string.hazard_alert_title, HazardAlerts.whatAhead(res, h), HazardAlerts.roundedMeters(alert)))
+            .setContentText(details.ifBlank { null })
+            .setColor(Ui.severityColor(this, h.severityLevel))
+            .setCategory(NotificationCompat.CATEGORY_NAVIGATION)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setAutoCancel(true)
+            .setTimeoutAfter(ALERT_VISIBLE_MS)
+            .setContentIntent(
+                PendingIntent.getActivity(this, 2, open, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+            )
+            .build()
+        nm.notify(ALERT_NOTIFICATION_ID, n)
     }
 
     private fun createChannel() {

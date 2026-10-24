@@ -66,4 +66,16 @@ class AlertEngineTest {
         e.onShock(5_600)
         assertTrue(e.checkCleanPasses(north(40.0), lng0, 9_000).isEmpty())
     }
+
+    @Test
+    fun `crawling over a hazard in traffic is not a clean pass`() {
+        val e = AlertEngine()
+        e.setHazards(listOf(hazard(7, 0.0)))
+        e.checkCleanPasses(north(-50.0), lng0, 0, speedKmh = 8f)
+        e.checkCleanPasses(north(-2.0), lng0, 5_000, speedKmh = 6f)
+        assertTrue("too slow to feel a pothole", e.checkCleanPasses(north(40.0), lng0, 9_000, speedKmh = 10f).isEmpty())
+        // The next, faster pass counts again.
+        e.checkCleanPasses(north(-2.0), lng0, 60_000, speedKmh = 30f)
+        assertEquals(listOf(7L), e.checkCleanPasses(north(40.0), lng0, 63_000, speedKmh = 30f))
+    }
 }

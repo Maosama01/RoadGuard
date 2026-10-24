@@ -171,6 +171,18 @@
 
     <!-- Spoken warning, e.g. "Pothole ahead, 120 metres" -->
     <string name="alert_ahead_speech">%1$s ahead, %2$d metres</string>
+    <string name="speech_sev_critical">Severe</string>
+    <string name="speech_sev_high">Bad</string>
+    <string name="speech_sev_medium"></string>
+    <string name="speech_sev_low">Minor</string>
+    <string name="alert_speech_road">On %1$s.</string>
+    <plurals name="alert_speech_drivers">
+        <item quantity="one">Reported by %d driver.</item>
+        <item quantity="other">Reported by %d drivers.</item>
+    </plurals>
+    <string name="hazard_alert_channel_name">Hazard warnings</string>
+    <string name="hazard_alert_channel_description">Pops up when pocket mode is about to reach a known pothole</string>
+    <string name="hazard_alert_title">%1$s ahead, %2$d m</string>
 
     <!-- Hazard detail -->
     <string name="detail_title">Hazard #%1$d</string>
@@ -240,6 +252,11 @@
     <string name="timeline_community_resolved">Drivers confirmed it\'s fixed</string>
     <string name="timeline_reopened">Spotted again after being fixed</string>
     <string name="timeline_update">Update</string>
+    <string name="timeline_auto_assigned">Sent to the contractor</string>
+    <string name="timeline_escalated">Overdue, escalated to the officer</string>
+    <string name="timeline_repaired">Repaired, with a photo</string>
+    <string name="timeline_actor_driver">A driver</string>
+    <string name="timeline_actor_city">City team</string>
     <!-- When, then who, e.g. "2 hours ago, Ward office" -->
     <string name="timeline_when">%1$s, %2$s</string>
 
@@ -292,6 +309,9 @@
     <string name="reports_waiting">Waiting to send</string>
     <string name="reports_waiting_count">Waiting to send (%1$d)</string>
     <string name="reports_rejected">RoadGuard couldn\'t accept these</string>
+    <string name="reports_rejected_action">Options</string>
+    <string name="reports_rejected_choice">The server refused these, usually because they were too old or a setting was wrong. Try sending them again, or delete them from this phone.</string>
+    <string name="reports_delete_rejected">Delete</string>
     <string name="reports_sent">Sent</string>
     <string name="reports_subtitle_empty">Everything you report shows up here.</string>
     <string name="reports_subtitle_fixed">%1$d sent, %2$d already fixed</string>
@@ -344,7 +364,13 @@
 
     <!-- Sign out dialog (Settings and Profile) -->
     <string name="sign_out_title">Sign out?</string>
-    <string name="sign_out_message">Reports waiting on this phone will send after you sign back in.</string>
+    <string name="sign_out_message">You can sign back in any time. Your points and reports stay with your account.</string>
+    <plurals name="sign_out_unsent">
+        <item quantity="one">%d report is still on this phone and hasn\'t been sent. Signing out deletes it. Tap Send now and wait a minute if you\'re online.</item>
+        <item quantity="other">%d reports are still on this phone and haven\'t been sent. Signing out deletes them. Tap Send now and wait a minute if you\'re online.</item>
+    </plurals>
+    <string name="sign_out_sending">Sending. Try signing out again in a minute.</string>
+    <string name="sign_out_delete_and_leave">Delete and sign out</string>
     <string name="sign_out_message_guest">You can come back to this guest account on this phone by choosing Start scanning again.</string>
 
     <!-- Sign in -->
@@ -427,6 +453,10 @@
 
     <!-- Network errors -->
     <string name="error_sign_in_again">Please sign in again.</string>
+    <string name="error_wrong_password">Email or password is incorrect.</string>
+    <string name="error_email_taken">An account with this email already exists. Try signing in.</string>
+    <string name="error_too_many">Too many tries in a short time. Please wait a few minutes.</string>
+    <string name="login_session_expired">You were signed out. Sign in again and your saved reports will be sent.</string>
     <string name="error_forbidden">You don\'t have access to that.</string>
     <string name="error_not_found">That item no longer exists.</string>
     <string name="error_server">The RoadGuard server had a problem. Try again in a moment.</string>
@@ -445,6 +475,7 @@
     <string name="drive_status_location_off">Phone location is off</string>
     <string name="drive_detail_location_off">Tap here to turn it on</string>
     <string name="drive_error_camera_friendly">The camera couldn\'t start. Close other camera apps and tap here.</string>
+    <string name="drive_camera_blocked_hint">The camera is blocked for RoadGuard. Tap Permissions, then Camera, and choose Allow.</string>
     <string name="location_blocked_hint">Location is blocked for RoadGuard. Tap Permissions, then Location, and choose Allow.</string>
     <string name="login_offline_started">No connection right now, but you can drive. Reports are saved on your phone and sent when you\'re back online.</string>
     <string name="tap_to_retry">Tap to try again</string>

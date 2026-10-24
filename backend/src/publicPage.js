@@ -124,7 +124,7 @@ function render(db, id, base, now = Date.now()) {
   const c = lk.contractor(h.contractor_id);
   const seg = lk.segment(h.segment_id);
   const label = H.TYPE_LABELS[h.type] || 'Road hazard';
-  const road = h.road_name || 'an unnamed road';
+  const road = h.road_name || (h.area ? `a road in ${h.area}` : 'an unnamed road');
   const sevWord = SEV_WORD[h.severity_level] || 'Low';
   const sevHex = SEV_HEX[h.severity_level] || SEV_HEX.LOW;
   const before = H.imageUrl(base, h.cover_image);
@@ -193,7 +193,7 @@ function render(db, id, base, now = Date.now()) {
   const body = `<main class="page">
     <section class="hero">
       <p class="kicker">${esc(label)} #${h.id}</p>
-      <h1>${esc(h.road_name || 'Unnamed road')}</h1>
+      <h1>${esc(h.road_name || (h.area ? `Near ${h.area}` : 'Unnamed road'))}</h1>
       <p class="sub">First reported ${esc(A.formatDate(h.first_reported_at))}, by ${h.unique_reporters} ${h.unique_reporters === 1 ? 'driver' : 'drivers'}</p>
     </section>
     ${photos}

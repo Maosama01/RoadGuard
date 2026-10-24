@@ -14,16 +14,27 @@ function readToken(req) {
   return null;
 }
 
-/** Attaches req.user when a valid token is present; never rejects. */
+/** A token older than this gets a fresh one in the X-RoadGuard-Token response header. */
+const REFRESH_AFTER_SECONDS = 7 * 24 * 3600;
+
+/**
+ * Attaches req.user when a valid token is present; never rejects.
+ * Sliding sessions: anyone who keeps using the app is handed a new token before the old one
+ * expires, so the app's background uploads never hit a dead token.
+ */
 function optionalAuth(db) {
   const findUser = db.prepare('SELECT * FROM users WHERE id = ?');
-  return (req, _res, next) => {
+  return (req, res, next) => {
     const token = readToken(req);
     if (token) {
       try {
         const payload = jwt.verify(token, config.jwtSecret);
         const user = findUser.get(payload.sub);
-        if (user) req.user = user;
+        if (user) {
+          req.user = user;
+          const age = Math.floor(Date.now() / 1000) - (payload.iat || 0);
+          if (age > REFRESH_AFTER_SECONDS || payload.role !== user.role) res.set('X-RoadGuard-Token', signToken(user));
+        }
       } catch (_) {
         /* invalid or expired: treat as anonymous */
       }

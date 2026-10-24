@@ -41,8 +41,14 @@ object ApiClient {
         val http = OkHttpClient.Builder()
             .addInterceptor { chain ->
                 val builder = chain.request().newBuilder().header("Accept", "application/json")
-                Session.token?.let { builder.header("Authorization", "Bearer $it") }
-                chain.proceed(builder.build())
+                val sent = Session.token
+                sent?.let { builder.header("Authorization", "Bearer $it") }
+                val response = chain.proceed(builder.build())
+                // Sliding session: the server hands out a fresh token before the old one expires.
+                // Only take it if nobody signed in or out while this request was in flight.
+                response.header("X-RoadGuard-Token")?.takeIf { it.isNotBlank() && sent != null && Session.token == sent }
+                    ?.let { Session.token = it }
+                response
             }
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)
@@ -72,6 +78,20 @@ object ApiClient {
             gson.fromJson(body, ErrorBody::class.java)?.message
         } catch (_: Exception) {
             null
+        }
+        // The server writes its messages in English. In Hindi, use our own words for the
+        // common cases and keep the server's text only for detail we can't know (bad input).
+        val hindi = Ui.uiLocale(Ui.localized(RoadGuardApp.instance)).language == "hi"
+        if (hindi) {
+            val path = e.response()?.raw()?.request?.url?.encodedPath.orEmpty()
+            when (e.code()) {
+                401 -> return text(if (path.endsWith("auth/login")) R.string.error_wrong_password else R.string.error_sign_in_again)
+                409 -> return text(R.string.error_email_taken)
+                429 -> return text(R.string.error_too_many)
+                403 -> return text(R.string.error_forbidden)
+                404 -> return text(R.string.error_not_found)
+                in 500..599 -> return text(R.string.error_server)
+            }
         }
         return parsed ?: when (e.code()) {
             401 -> text(R.string.error_sign_in_again)
@@ -117,11 +137,50 @@ suspend fun ensureGuestAccount(): Boolean = withContext(Dispatchers.IO) {
     }
 }
 
-/** Runs an API call off the main thread and turns every failure into a readable message. */
-suspend fun <T> apiCall(block: suspend ApiService.() -> T): ApiResult<T> = withContext(Dispatchers.IO) {
+/**
+ * The stored token stopped working (expired, or the server's secret changed). A guest gets
+ * the same account back from its device id; a registered user has to sign in again, and their
+ * unsent reports wait for that. Returns true when the call is worth retrying.
+ */
+private suspend fun recoverFromRejectedToken(rejected: String): Boolean = guestLock.withLock {
+    if (Session.token != rejected) return@withLock Session.isSignedIn // someone already fixed it
+    if (Session.isGuest) {
+        Session.token = null
+        Session.offlineGuest = true
+        try {
+            val r = ApiClient.api.guest(GuestRequest(Session.deviceId))
+            val token = r.token
+            val user = r.user
+            if (token != null && user != null) Session.saveAuth(token, user)
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            // Offline: ensureGuestAccount() tries again on the next call.
+        }
+        Session.isSignedIn
+    } else {
+        Session.expire()
+        false
+    }
+}
+
+/**
+ * Runs an API call off the main thread and turns every failure into a readable message.
+ * [reauth] = false for sign-in calls, where a 401 means a wrong password, not a dead session.
+ */
+suspend fun <T> apiCall(reauth: Boolean = true, block: suspend ApiService.() -> T): ApiResult<T> = withContext(Dispatchers.IO) {
     ensureGuestAccount()
+    val tokenUsed = Session.token
     try {
-        ApiResult.Ok(ApiClient.api.block())
+        try {
+            ApiResult.Ok(ApiClient.api.block())
+        } catch (e: HttpException) {
+            if (e.code() == 401 && reauth && tokenUsed != null && recoverFromRejectedToken(tokenUsed)) {
+                ApiResult.Ok(ApiClient.api.block())
+            } else {
+                throw e
+            }
+        }
     } catch (e: CancellationException) {
         throw e
     } catch (e: HttpException) {

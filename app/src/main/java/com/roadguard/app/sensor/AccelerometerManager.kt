@@ -5,249 +5,66 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import kotlin.math.sqrt
+import android.os.SystemClock
+import com.roadguard.app.core.BumpDetector
 
+/**
+ * Jolts for camera mode, felt the same way as pocket mode: [BumpDetector] on the raw
+ * accelerometer. It looks at vertical movement only (braking and swerving are sideways), ignores
+ * slow driving (speed breakers, parking), adapts to how rough the road usually is, and settles
+ * for a second after starting, so there's no fake jolt the moment the screen opens.
+ */
 class AccelerometerManager(
     context: Context,
-    private val onShockDetected: (ShockEvent) -> Unit
+    private val onShockDetected: (ShockEvent) -> Unit,
 ) : SensorEventListener {
 
-    companion object {
-
-        // Configurable values
-        const val DEFAULT_SHOCK_THRESHOLD = 6.0f
-
-        const val DEFAULT_COOLDOWN_MS = 1500L
-
-        const val GYRO_REJECTION_THRESHOLD = 8.0f
-
-        // Gravity filter
-        private const val ALPHA = 0.8f
+    private companion object {
+        /** A GPS speed older than this is treated as "not moving" (lost fix, tunnel). */
+        const val MAX_SPEED_AGE_MS = 3_000L
     }
 
-    private val sensorManager =
-        context.getSystemService(
-            Context.SENSOR_SERVICE
-        ) as SensorManager
+    private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
+    private val accelerometer = sensorManager?.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+    private val detector = BumpDetector()
 
-    // Preferred sensor
-    private val linearAccelerometer =
-        sensorManager.getDefaultSensor(
-            Sensor.TYPE_LINEAR_ACCELERATION
-        )
+    @Volatile private var speedKmh = 0f
+    @Volatile private var speedAt = 0L
 
-    // Fallback sensor
-    private val rawAccelerometer =
-        sensorManager.getDefaultSensor(
-            Sensor.TYPE_ACCELEROMETER
-        )
+    /** False on the rare phone without an accelerometer: then nothing can be "felt". */
+    val available: Boolean get() = accelerometer != null
 
-    // Gyroscope
-    private val gyroscope =
-        sensorManager.getDefaultSensor(
-            Sensor.TYPE_GYROSCOPE
-        )
+    fun setShockThreshold(threshold: Float) {
+        detector.threshold = threshold
+    }
 
-    private var lastShockTime = 0L
-
-    private var currentGyroMagnitude = 0f
-
-    private var shockThreshold =
-        DEFAULT_SHOCK_THRESHOLD
-
-    // Gravity values used for fallback filtering
-    private val gravity = FloatArray(3)
-
-    fun setShockThreshold(
-        threshold: Float
-    ) {
-        shockThreshold = threshold
+    /** Latest GPS speed; jolts below the detector's minimum speed are ignored. */
+    fun updateSpeed(kmh: Float) {
+        speedKmh = kmh
+        speedAt = SystemClock.elapsedRealtime()
     }
 
     fun start() {
-
-        if (linearAccelerometer != null) {
-
-            sensorManager.registerListener(
-                this,
-                linearAccelerometer,
-                SensorManager.SENSOR_DELAY_GAME
-            )
-
-        } else if (rawAccelerometer != null) {
-
-            sensorManager.registerListener(
-                this,
-                rawAccelerometer,
-                SensorManager.SENSOR_DELAY_GAME
-            )
-        }
-
-        // Register gyroscope if available
-        gyroscope?.let {
-
-            sensorManager.registerListener(
-                this,
-                it,
-                SensorManager.SENSOR_DELAY_GAME
-            )
-        }
+        val sensor = accelerometer ?: return
+        detector.reset()
+        sensorManager?.registerListener(this, sensor, SensorManager.SENSOR_DELAY_GAME)
     }
 
     fun stop() {
-
-        sensorManager.unregisterListener(
-            this
-        )
+        sensorManager?.unregisterListener(this)
     }
 
-    override fun onSensorChanged(
-        event: SensorEvent?
-    ) {
-
+    override fun onSensorChanged(event: SensorEvent?) {
         event ?: return
-
-        when (event.sensor.type) {
-
-            Sensor.TYPE_LINEAR_ACCELERATION -> {
-
-                processAcceleration(
-                    event.values[0],
-                    event.values[1],
-                    event.values[2]
-                )
-            }
-
-            Sensor.TYPE_ACCELEROMETER -> {
-
-                processRawAccelerometer(
-                    event
-                )
-            }
-
-            Sensor.TYPE_GYROSCOPE -> {
-
-                processGyroscope(
-                    event
-                )
-            }
-        }
+        if (event.sensor.type != Sensor.TYPE_ACCELEROMETER || event.values.size < 3) return
+        val speed = if (SystemClock.elapsedRealtime() - speedAt > MAX_SPEED_AGE_MS) 0f else speedKmh
+        val sensorMs = event.timestamp / 1_000_000L
+        val hit = detector.onSample(event.values[0], event.values[1], event.values[2], sensorMs, speed) ?: return
+        // Sensor clock (time since boot) to wall clock, at the moment of the peak.
+        val ageMs = ((SystemClock.elapsedRealtimeNanos() - event.timestamp) / 1_000_000L).coerceIn(0L, 2_000L)
+        val at = System.currentTimeMillis() - ageMs - (sensorMs - hit.timestamp)
+        onShockDetected(ShockEvent(magnitude = hit.magnitude, timestamp = at))
     }
 
-    private fun processAcceleration(
-        x: Float,
-        y: Float,
-        z: Float
-    ) {
-
-        val magnitude = sqrt(
-            x * x +
-                    y * y +
-                    z * z
-        )
-
-        checkForShock(
-            magnitude
-        )
-    }
-
-    private fun processRawAccelerometer(
-        event: SensorEvent
-    ) {
-
-        val x = event.values[0]
-        val y = event.values[1]
-        val z = event.values[2]
-
-        gravity[0] =
-            ALPHA * gravity[0] +
-                    (1 - ALPHA) * x
-
-        gravity[1] =
-            ALPHA * gravity[1] +
-                    (1 - ALPHA) * y
-
-        gravity[2] =
-            ALPHA * gravity[2] +
-                    (1 - ALPHA) * z
-
-        val linearX =
-            x - gravity[0]
-
-        val linearY =
-            y - gravity[1]
-
-        val linearZ =
-            z - gravity[2]
-
-        val magnitude = sqrt(
-            linearX * linearX +
-                    linearY * linearY +
-                    linearZ * linearZ
-        )
-
-        checkForShock(
-            magnitude
-        )
-    }
-
-    private fun checkForShock(
-        magnitude: Float
-    ) {
-
-        val now =
-            System.currentTimeMillis()
-
-        if (
-            magnitude <
-            shockThreshold
-        ) {
-            return
-        }
-
-        if (
-            currentGyroMagnitude >
-            GYRO_REJECTION_THRESHOLD
-        ) {
-            return
-        }
-
-        if (
-            now - lastShockTime <
-            DEFAULT_COOLDOWN_MS
-        ) {
-            return
-        }
-
-        lastShockTime = now
-
-        onShockDetected(
-            ShockEvent(
-                magnitude = magnitude,
-                timestamp = now
-            )
-        )
-    }
-
-    private fun processGyroscope(
-        event: SensorEvent
-    ) {
-
-        val x = event.values[0]
-        val y = event.values[1]
-        val z = event.values[2]
-
-        currentGyroMagnitude = sqrt(
-            x * x +
-                    y * y +
-                    z * z
-        )
-    }
-
-    override fun onAccuracyChanged(
-        sensor: Sensor?,
-        accuracy: Int
-    ) {
-        // Not required
-    }
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
 }

@@ -33,4 +33,16 @@ interface PendingReportDao {
 
     @Query("SELECT * FROM pending_reports WHERE state = 'rejected'")
     suspend fun rejected(): List<PendingReport>
+
+    @Query("SELECT * FROM pending_reports")
+    suspend fun all(): List<PendingReport>
+
+    @Query("SELECT COUNT(*) FROM pending_reports")
+    suspend fun count(): Int
+
+    @Query("DELETE FROM pending_reports")
+    suspend fun deleteAll(): Int
+
+    @Query("DELETE FROM pending_reports WHERE state = 'rejected'")
+    suspend fun deleteRejected(): Int
 }
